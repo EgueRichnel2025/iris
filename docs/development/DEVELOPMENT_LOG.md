@@ -117,9 +117,15 @@ Deux commits atomiques ont été créés localement :
 | `9923bec` | `test(web): configure Vitest and add app shell tests` | Lockfile, dépendances Vitest, configuration et deux tests React |
 | `1e471b6` | `ci(github): add web quality pipeline` | Workflow GitHub Actions |
 
-Publication sur `origin/main` : les deux commits sont en attente du push groupé.
+Publication sur `origin/main` : commits `9923bec` et `1e471b6` publiés avec le commit de journal `d3592a1`.
 
 ### Prochaines actions
-1. Pousser les commits tests/CI et journal sur GitHub.
-2. Lancer le serveur Vite et vérifier l'application dans le navigateur.
+1. Vérifier l'exécution du workflow CI dans GitHub Actions.
+2. Faire une revue visuelle de la coque React dans le navigateur.
 3. Commencer la première véritable tranche frontend à partir de la maquette approuvée.
+
+### Vérification du serveur de développement
+- Serveur Vite démarré avec `npm run dev --workspace @iris/web -- --host 0.0.0.0`.
+- Requête HTTP locale sur `http://localhost:5173/` : réponse `200 OK` et document HTML servi.
+- Le serveur reste actif dans le processus local `30184` pendant la session.
+- Le workflow GitHub Actions est ajouté au dépôt ; son exécution distante reste à confirmer dans l'onglet Actions de GitHub.
