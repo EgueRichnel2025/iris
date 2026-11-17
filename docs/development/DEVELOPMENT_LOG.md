@@ -397,3 +397,65 @@ Le premier lint a signalé des avertissements liés à l'accès à une ref dans 
 3. Ajouter la restauration de session et les routes protégées avant de considérer l'authentification complète.
 4. Vérifier visuellement les écrans sur un téléphone réel et sur plusieurs largeurs d'écran.
 5. Charger MediaPipe à la demande pour réduire le bundle initial.
+
+---
+
+## Session 2026-11-17 — Création et connexion du projet Supabase IRIS
+
+### Infrastructure créée
+- Projet Supabase `iris` créé dans l'organisation Richnel organisation.
+- Référence projet : `dvsdqwtklqvxahmkgwln`.
+- Région : `eu-west-1` (Ireland).
+- Statut vérifié après création : `ACTIVE_HEALTHY`.
+- URL API et clé publique publishable récupérées via les outils Supabase.
+- Fichier local `apps/web/.env.local` créé avec les variables Vite requises. Le fichier est couvert par `.gitignore` et n'est pas versionné.
+- Le serveur Vite a été redémarré pour charger les variables d'environnement.
+
+### Authentification vérifiée côté projet
+Lecture de `/auth/v1/settings` :
+- Email activé.
+- Inscriptions activées (`disable_signup=false`).
+- Confirmation email requise (`mailer_autoconfirm=false`).
+- Google OAuth désactivé.
+- Aucun tableau public créé pour le moment ; la première étape repose sur Supabase Auth et les métadonnées utilisateur.
+
+### Intégration frontend
+- Inscription via email/mot de passe avec le nom enregistré dans `user_metadata.full_name`.
+- URL de redirection après confirmation configurée côté client vers l'origine courante.
+- Connexion email/mot de passe.
+- Récupération de mot de passe par email.
+- Restauration de session à l'ouverture de l'application et écoute des changements d'état Auth.
+- Retrait du bouton Google trompeur tant que le fournisseur OAuth n'est pas configuré.
+- Tests UI isolés du vrai projet Supabase pour éviter les appels réseau et la création accidentelle de comptes pendant les tests.
+
+### Configuration Dashboard encore nécessaire
+Le connecteur Supabase disponible permet de créer le projet, récupérer URL/clé, inspecter Auth et gérer la base, mais ne fournit pas d'action pour modifier la configuration Auth URL/SMTP. Il reste donc à vérifier dans Supabase Dashboard :
+- Site URL local : `http://localhost:5173`.
+- Redirect allow-list : `http://localhost:5173/**`.
+- Ajouter l'origine HTTPS de production au moment du déploiement.
+- Configurer un SMTP personnalisé pour la délivrabilité des emails de confirmation et de récupération.
+
+Le fournisseur Google est désactivé et aucun client OAuth n'a été configuré ; l'option est masquée dans l'interface.
+
+### Validations
+- Endpoint public Auth settings : accessible et cohérent avec les réglages décrits ci-dessus.
+- `npm test` : 13 tests réussis (3 fichiers).
+- `npm run lint` : 0 warning, 0 erreur.
+- `npm run typecheck` : réussi.
+- `npm run build` : réussi.
+- `git diff --check` : réussi.
+- Avertissement de bundle supérieur à 500 kB toujours présent (MediaPipe) ; le découpage dynamique sera traité dans une étape dédiée.
+
+### Fichiers
+- `apps/web/.env.local` — variables locales, ignorées par Git.
+- `apps/web/src/lib/supabase.ts` — client Supabase.
+- `apps/web/src/App.tsx` — flux Auth, redirection et restauration de session.
+- `apps/web/src/App.test.tsx` — mock Supabase pour tests indépendants.
+- `docs/development/SUPABASE_SETUP.md` — référence de configuration.
+- `docs/development/DEVELOPMENT_LOG.md` — journal de session.
+
+### Prochaines étapes
+1. Renseigner les URL autorisées dans Authentication → URL Configuration.
+2. Configurer SMTP pour envoyer les emails aux utilisateurs externes.
+3. Effectuer un test d'inscription réel avec une adresse email contrôlée, puis confirmer le compte et se connecter.
+4. Ajouter le profil utilisateur en base et les politiques RLS avant les fonctionnalités sociales.
