@@ -129,3 +129,42 @@ Publication sur `origin/main` : commits `9923bec` et `1e471b6` publiés avec le 
 - Requête HTTP locale sur `http://localhost:5173/` : réponse `200 OK` et document HTML servi.
 - Le serveur reste actif dans le processus local `30184` pendant la session.
 - Le workflow GitHub Actions est ajouté au dépôt ; son exécution distante reste à confirmer dans l'onglet Actions de GitHub.
+
+---
+
+## Session 2026-11-17 — Design system et parcours d'accueil React
+
+### Objectif
+Remplacer la coque React temporaire par les premiers vrais ecrans IRIS, en reprenant l'identite visuelle de la maquette HTML/CSS/JS approuvee.
+
+### Realisations
+- Reprise des couleurs de la maquette : paper `#F7F5F0`, ink `#202321`, violet `#7357D9`, soft violet `#EEE9FF`, coral `#F27E70`, lime `#C7E56B`.
+- Mise en place des typographies DM Sans et Manrope, des boutons, champs, labels, focus visibles et tokens CSS.
+- Creation d'un Splash Screen IRIS avec identite, proposition de valeur et acces aux parcours Sign in / Sign up.
+- Creation de l'ecran Sign in : email, mot de passe, affichage/masquage du mot de passe, option remember me, lien de recuperation et bouton Google (placeholder explicite, non connecte).
+- Creation de l'ecran Sign up : nom, email, mot de passe avec longueur minimale, consentement aux conditions.
+- Creation de l'ecran Password Recovery avec etat de confirmation local.
+- Ajout d'une mise en page responsive desktop/mobile, d'etats focus clavier et du respect de prefers-reduced-motion.
+- Conservation d'une communication honnete : les formulaires sont interactifs cote frontend, mais aucun compte n'est cree et aucune authentification reelle n'est encore branchee.
+
+### Fichiers modifies
+- `apps/web/src/App.tsx` — composants Splash, VisualPanel, AuthLayout, Recovery et navigation locale.
+- `apps/web/src/index.css` — design tokens, composants et responsive styles.
+- `apps/web/src/App.test.tsx` — quatre tests du parcours d'accueil et de recuperation.
+
+### Validations executees
+| Commande | Resultat |
+| --- | --- |
+| `npm test` | Reussi — 4 tests passes |
+| `npm run lint` | Reussi — 0 warning, 0 erreur |
+| `npm run typecheck` | Reussi |
+| `npm run build` | Reussi — bundle production genere |
+| `git diff --check` | Reussi |
+
+### Commits
+A enregistrer apres validation du diff et publication.
+
+### Suite
+1. Faire une revue visuelle dans le navigateur et ajuster les details si necessaire.
+2. Construire le shell de l'application connectee : sidebar, topbar, navigation et page Explore.
+3. Integrer ensuite Camera Studio et le flux de capture, puis la couche Computer Vision.
