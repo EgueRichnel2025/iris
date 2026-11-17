@@ -72,4 +72,54 @@ Mettre en place ce journal durable et reprendre le diagnostic de l'installation 
 3. Installer les dépendances et générer `package-lock.json`.
 4. Exécuter lint, typecheck et build ; ajouter les tests une fois l'installation stabilisée.
 5. Ajouter les workflows CI GitHub Actions après validation locale.
-6. Créer un commit dédié au journal et aux changements de configuration effectivement validés, puis le pousser.
+
+---
+
+## Session 2026-11-17 — Installation stabilisée, tests et intégration continue
+
+### Objectif
+Terminer l'installation des dépendances du workspace, introduire des tests automatisés, puis vérifier le cycle qualité local et préparer GitHub Actions.
+
+### Réalisations
+- L'installation initiale des dépendances a abouti : 88 paquets ajoutés et un premier `package-lock.json` généré.
+- Vérification de l'arbre des dépendances : React 19.3.1, React DOM 19.3.1, TypeScript 7.0.2, Vite 7.3.1, Tailwind CSS 4.1.18, plugin React 5.1.1 et Oxlint 1.94.0.
+- Installation des outils de test : Vitest 3.2.4, jsdom 26.1.0, Testing Library React 16.3.0 et jest-dom 6.9.1.
+- Configuration de Vitest avec jsdom et un fichier de setup qui nettoie le DOM après chaque test.
+- Ajout de deux tests de rendu pour la coque React d'IRIS.
+- Ajout des scripts `test` et `test:watch` dans le workspace web et du script `test` à la racine.
+- Ajout du workflow GitHub Actions `.github/workflows/ci.yml` : installation reproductible via `npm ci`, lint, typecheck, tests et build sur push/pull request vers main.
+
+### Fichiers créés ou modifiés
+- `package-lock.json` — verrouillage des dépendances npm.
+- `package.json` — commande de test racine.
+- `apps/web/package.json` — dépendances de test et scripts.
+- `apps/web/vite.config.ts` — configuration Vitest/jsdom.
+- `apps/web/src/test/setup.ts` — extensions jest-dom et nettoyage après test.
+- `apps/web/src/App.test.tsx` — deux tests de rendu.
+- `.github/workflows/ci.yml` — pipeline qualité GitHub Actions.
+- `docs/development/DEVELOPMENT_LOG.md` — journal de cette session.
+
+### Validations exécutées
+| Commande | Résultat |
+| --- | --- |
+| `npm test` | Réussi — 1 fichier de test, 2 tests passés |
+| `npm run lint` | Réussi — 0 warning, 0 erreur |
+| `npm run typecheck` | Réussi — aucune erreur TypeScript |
+| `npm run build` | Réussi — bundle de production généré par Vite |
+| `npm ci --no-audit --no-fund` | Réussi — installation propre et reproductible, 180 paquets installés |
+
+Le premier passage des tests a révélé un problème de nettoyage du DOM entre les cas de test. Le setup Vitest a été corrigé avec `cleanup()` après chaque test ; le second passage est entièrement vert.
+
+### État Git
+Deux commits atomiques ont été créés localement :
+| Commit | Message | Contenu |
+| --- | --- | --- |
+| `9923bec` | `test(web): configure Vitest and add app shell tests` | Lockfile, dépendances Vitest, configuration et deux tests React |
+| `1e471b6` | `ci(github): add web quality pipeline` | Workflow GitHub Actions |
+
+Publication sur `origin/main` : les deux commits sont en attente du push groupé.
+
+### Prochaines actions
+1. Pousser les commits tests/CI et journal sur GitHub.
+2. Lancer le serveur Vite et vérifier l'application dans le navigateur.
+3. Commencer la première véritable tranche frontend à partir de la maquette approuvée.
