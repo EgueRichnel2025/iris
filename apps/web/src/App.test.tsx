@@ -57,6 +57,7 @@ describe('IRIS onboarding experience', () => {
     render(<App />)
     fireEvent.click(screen.getByRole('button', { name: /explore iris first/i }))
     fireEvent.click(screen.getByRole('button', { name: /open camera studio/i }))
-    expect(screen.getByRole('heading', { name: /your camera\. your canvas\./i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /camera studio/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /enable camera/i })).toBeInTheDocument()
   })
 })

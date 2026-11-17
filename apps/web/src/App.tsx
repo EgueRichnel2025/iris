@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react'
+import CameraStudio from './CameraStudio'
 
 type Screen = 'splash' | 'signin' | 'signup' | 'recovery' | 'dashboard' | 'camera'
 type Category = 'All effects' | 'Funny' | 'Beauty' | 'Animals' | 'Distortion' | 'Fantasy'
@@ -55,13 +56,9 @@ function Dashboard({ onNavigate }: { onNavigate: (screen: Screen) => void }) {
   </main>
 }
 
-function CameraPlaceholder({ onNavigate }: { onNavigate: (screen: Screen) => void }) {
-  return <main className="camera-placeholder"><header><Brand /><button className="text-button" onClick={() => onNavigate('dashboard')}>← Back to Explore</button></header><section><div className="camera-icon">◎</div><span className="eyebrow">IRIS STUDIO</span><h1>Your camera.<br /><em>Your canvas.</em></h1><p>Camera Studio is the next milestone. We will add live camera access, face tracking and real-time effects here.</p><div className="camera-coming">COMING NEXT <span>02 / 04</span></div><button className="button button-primary" onClick={() => onNavigate('dashboard')}>Back to Explore <span>→</span></button></section></main>
-}
-
 function App() {
   const [screen, setScreen] = useState<Screen>('splash')
-  return <div className="app-root">{screen === 'splash' && <Splash onNavigate={setScreen} />}{(screen === 'signin' || screen === 'signup') && <AuthLayout mode={screen} onNavigate={setScreen} />}{screen === 'recovery' && <Recovery onNavigate={setScreen} />}{screen === 'dashboard' && <Dashboard onNavigate={setScreen} />}{screen === 'camera' && <CameraPlaceholder onNavigate={setScreen} />}</div>
+  return <div className="app-root">{screen === 'splash' && <Splash onNavigate={setScreen} />}{(screen === 'signin' || screen === 'signup') && <AuthLayout mode={screen} onNavigate={setScreen} />}{screen === 'recovery' && <Recovery onNavigate={setScreen} />}{screen === 'dashboard' && <Dashboard onNavigate={setScreen} />}{screen === 'camera' && <CameraStudio onBack={() => setScreen('dashboard')} />}</div>
 }
 
 export default App
