@@ -1,6 +1,9 @@
 import { fireEvent, render, screen } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import App from './App'
+
+// Keep UI tests isolated from the developer's local Supabase project.
+vi.mock('./lib/supabase', () => ({ supabase: null }))
 
 describe('IRIS onboarding experience', () => {
   it('opens on the splash screen with the IRIS brand promise', () => {
