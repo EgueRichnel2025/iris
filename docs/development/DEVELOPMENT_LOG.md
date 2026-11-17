@@ -168,3 +168,52 @@ A enregistrer apres validation du diff et publication.
 1. Faire une revue visuelle dans le navigateur et ajuster les details si necessaire.
 2. Construire le shell de l'application connectee : sidebar, topbar, navigation et page Explore.
 3. Integrer ensuite Camera Studio et le flux de capture, puis la couche Computer Vision.
+
+---
+
+## Session 2026-11-17 — Dashboard Explore et navigation vers Camera Studio
+
+### Objectif
+Construire le premier espace principal IRIS apres l'onboarding : navigation, recherche et filtres de galerie, acces a Camera Studio.
+
+### Realisations
+- Ajout d'un acces "Explore IRIS first" depuis le Splash Screen pour parcourir le produit sans compte.
+- Ajout d'un mode visiteur clairement identifie "PREVIEW MODE" ; aucune authentification reelle n'est simulee.
+- Creation du shell dashboard avec sidebar sur desktop, navigation adaptee en barre inferieure sur mobile, topbar, fil d'Ariane et profil visiteur.
+- Creation d'un hero Explore et d'une galerie de six cartes de filtres fictifs clairement presentees comme contenu de demonstration.
+- Ajout de categories interactives : All effects, Funny, Beauty, Animals, Distortion et Fantasy.
+- Ajout de la recherche dans la galerie ; categories et recherche se combinent.
+- Ajout de points d'entree vers Camera Studio depuis le hero, les cartes et le menu.
+- Creation d'un ecran Camera Studio placeholder qui annonce explicitement la prochaine etape Computer Vision.
+- Ajout de sept tests couvrant onboarding, recuperation, preview visiteur, filtrage/recherche et navigation vers Camera Studio.
+
+### Fichiers modifies
+- `apps/web/src/App.tsx` — ecrans Explore et Camera Studio placeholder, navigation et donnees de demonstration.
+- `apps/web/src/index.css` — styles dashboard, galerie, sidebar, responsive et mobile navigation.
+- `apps/web/src/App.test.tsx` — suite portee a sept tests.
+
+### Validations executees
+| Commande | Resultat |
+| --- | --- |
+| `npm test` | Reussi — 7 tests passes |
+| `npm run lint` | Reussi — 0 warning, 0 erreur |
+| `npm run typecheck` | Reussi |
+| `npm run build` | Reussi — bundle production genere |
+| `git diff --check` | Reussi |
+| Requete HTTP `http://localhost:5173/` | Reussi — HTTP 200, entree Vite servie |
+
+Un premier test a echoue car son expression reguliere ne prenait pas en compte la ponctuation du titre accessible. Le test a ete corrige pour verifier le nom accessible exact ; la suite complete est ensuite passee.
+
+### Commits
+A enregistrer apres creation des commits atomiques et push.
+
+### Limites explicites
+- Les cartes de filtres sont des apercus de catalogue, pas encore des effets CV appliques a une image.
+- La recherche et les categories fonctionnent localement dans le navigateur.
+- Camera Studio n'ouvre pas encore la camera : l'acces media, le tracking facial et le rendu temps reel constituent la prochaine tranche.
+
+### Prochaines actions
+1. Committer le dashboard et ses tests, puis le journal dans un commit documentaire separe.
+2. Pousser les changements sur `origin/main`.
+3. Demarrer Camera Studio : demande de permission camera, flux video, selection camera et gestion des erreurs.
+4. Integrer le suivi facial et les premiers effets apres validation du flux video.
