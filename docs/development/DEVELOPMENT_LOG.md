@@ -270,3 +270,60 @@ A enregistrer en commits atomiques apres cette validation.
 2. Verifier le flux avec une webcam reelle sur localhost et sur un telephone via HTTPS.
 3. Integrer MediaPipe Face Landmarker, afficher les landmarks et mesurer la stabilite du tracking.
 4. Implementer ensuite les premiers effets de deformation faciale : bouche et tete.
+
+---
+
+## Session 2026-11-17 — Integration initiale de MediaPipe Face Landmarker
+
+### Objectif
+Introduire le suivi facial temps réel dans Camera Studio, visualiser les landmarks et exposer une première mesure d'ouverture de la bouche, sans encore appliquer de déformation au visage.
+
+### Réalisations
+- Ajout de la dépendance officielle `@mediapipe/tasks-vision` (version résolue `1.2.3`) au workspace web et mise à jour du lockfile.
+- Création de `FaceLandmarkerOverlay.tsx`, composant isolé chargé d'initialiser MediaPipe Face Landmarker en mode VIDEO.
+- Chargement des fichiers WASM depuis jsDelivr et du modèle Face Landmarker depuis Google Cloud Storage au moment où l'utilisateur active la caméra et le suivi.
+- Tentative d'exécution GPU avec repli CPU si l'initialisation GPU échoue.
+- Détection d'un visage à chaque nouvelle frame vidéo via `requestAnimationFrame`, avec limitation du traitement aux frames vidéo réellement nouvelles.
+- Dessin des points faciaux sur un canvas superposé à la vidéo ; les points des lèvres sont mis en évidence.
+- Activation des blendshapes et lecture du score `jawOpen` pour afficher une première indication d'ouverture de la bouche.
+- Synchronisation du miroir de l'overlay avec l'aperçu selfie.
+- Fermeture du FaceLandmarker et annulation de la boucle d'animation au démontage du composant.
+- Intégration dans Camera Studio uniquement lorsque la caméra est prête.
+- Ajout des styles de superposition et d'un indicateur d'état : chargement, recherche de visage, visage suivi ou erreur.
+- Ajout d'un test vérifiant que l'overlay ne s'initialise pas lorsque le suivi est désactivé.
+
+### Fichiers créés ou modifiés
+- `apps/web/src/FaceLandmarkerOverlay.tsx` — initialisation MediaPipe, détection vidéo, dessin des landmarks et lecture de jawOpen.
+- `apps/web/src/FaceLandmarkerOverlay.test.tsx` — test de rendu lorsque le suivi est désactivé.
+- `apps/web/src/CameraStudio.tsx` — connexion de l'élément vidéo au composant de suivi.
+- `apps/web/src/index.css` — canvas de landmarks et badge d'état.
+- `apps/web/package.json` — dépendance MediaPipe.
+- `package-lock.json` — verrouillage de la dépendance.
+
+### Validations exécutées
+| Commande | Résultat |
+| --- | --- |
+| `npm test` | Réussi — 3 fichiers de test, 12 tests passés |
+| `npm run lint` | Réussi — 0 warning, 0 erreur |
+| `npm run typecheck` | Réussi |
+| `npm run build` | Réussi — bundle production généré |
+| `git diff --check` | Réussi |
+
+Le premier lint a signalé des avertissements liés à l'accès à une ref dans le nettoyage React. Le code de nettoyage a été simplifié ; le lint final est à zéro avertissement. Le premier build exécuté avant cette correction a échoué sur une variable devenue inutilisée ; le build final après correction a réussi.
+
+### Limites à ce stade
+- La détection réelle doit encore être essayée avec une webcam physique dans un navigateur compatible. Les tests automatisés ne valident pas le chargement réseau du modèle, l'accélération GPU/CPU ni la précision du tracking.
+- Le modèle WASM et le fichier `.task` sont chargés depuis des CDN externes ; une stratégie d'hébergement local et de versionnement des assets pourra être étudiée avant la production.
+- Les points faciaux sont visualisés, mais aucun maillage déformable ni filtre de déformation n'est encore appliqué.
+- Le score jawOpen est une mesure de blendshape, pas encore un contrôleur calibré pour une animation ou un filtre.
+- Le traitement sur chaque frame peut être coûteux sur des appareils modestes ; il faudra mesurer les FPS et adapter la fréquence de détection.
+
+### Commits
+À créer après revue du diff : dépendance MediaPipe, intégration Face Landmarker, puis journal de session dans des commits distincts. Publication distante à confirmer après push.
+
+### Prochaines actions
+1. Faire un essai webcam réel dans Chrome et confirmer que le modèle se charge et que les landmarks suivent correctement le visage.
+2. Mesurer la fréquence d'images et ajuster le coût du tracking si nécessaire.
+3. Ajouter l'analyse des points de bouche et de l'orientation de tête avec des seuils calibrables.
+4. Concevoir le premier moteur de déformation de bouche sur une copie du flux, sans altérer la capture originale.
+5. Étendre ensuite aux déformations de tête : Big Head, Small Head, élargissement, rétrécissement et squash/stretch.
