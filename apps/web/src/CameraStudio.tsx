@@ -1,10 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import FaceLandmarkerOverlay from './FaceLandmarkerOverlay'
 
 type FacingMode = 'user' | 'environment'
 type Capture = { url: string; filename: string; kind: 'photo' | 'video' }
 
 function CameraStudio({ onBack }: { onBack: () => void }) {
   const videoRef = useRef<HTMLVideoElement>(null)
+  const [videoElement, setVideoElement] = useState<HTMLVideoElement | null>(null)
+  const attachVideo = useCallback((node: HTMLVideoElement | null) => {
+    videoRef.current = node
+    setVideoElement(node)
+  }, [])
   const streamRef = useRef<MediaStream | null>(null)
   const recorderRef = useRef<MediaRecorder | null>(null)
   const chunksRef = useRef<Blob[]>([])
@@ -156,7 +162,8 @@ function CameraStudio({ onBack }: { onBack: () => void }) {
       <section className="studio-stage">
         <div className="studio-stage-top"><div><span className="eyebrow">YOUR CREATIVE SPACE</span><h1>Camera <em>Studio.</em></h1></div><span className="studio-stage-index">IRIS / 002</span></div>
         <div className="camera-frame">
-          <video ref={videoRef} className={facingMode === 'user' ? 'camera-video mirrored' : 'camera-video'} autoPlay playsInline muted aria-label="Live camera preview" />
+          <video ref={attachVideo} className={facingMode === 'user' ? 'camera-video mirrored' : 'camera-video'} autoPlay playsInline muted aria-label="Live camera preview" />
+          <FaceLandmarkerOverlay video={videoElement} enabled={cameraState === 'ready'} mirrored={facingMode === 'user'} />
           {cameraState !== 'ready' && <div className="camera-overlay"><div className="camera-overlay-icon">{cameraState === 'loading' ? '◌' : '◎'}</div><b>{cameraState === 'loading' ? 'Waking up your camera…' : cameraState === 'error' ? 'Camera unavailable' : 'Ready when you are.'}</b><p>{cameraState === 'error' ? error : 'Your camera preview will appear here. Nothing is captured until you choose to.'}</p>{cameraState !== 'loading' && <button className="button button-primary" onClick={() => startCamera(facingMode)}>{cameraState === 'error' ? 'Try again' : 'Enable camera'} <span>→</span></button>}</div>}
           {flash && <div className="camera-flash" />}
           {cameraState === 'ready' && <><span className="camera-corner corner-tl" /><span className="camera-corner corner-tr" /><span className="camera-corner corner-bl" /><span className="camera-corner corner-br" /><div className="camera-frame-label"><i /> LIVE PREVIEW</div></>}

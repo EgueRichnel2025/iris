@@ -288,3 +288,12 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
 .studio-footer { display:flex; justify-content:space-between; padding:15px clamp(18px,5vw,72px); border-top:1px solid var(--line); color:#aaa99f; font-size:7px; font-weight:800; letter-spacing:1px; }
 @media(max-width:850px) { .studio-layout { grid-template-columns:minmax(0,1fr); max-width:720px; gap:26px; }.studio-side { display:grid; grid-template-columns:1fr 1fr; gap:0 24px; }.studio-side-heading { grid-column:1/-1; }.studio-privacy { align-self:start; margin-top:12px; }.studio-gallery { margin-top:15px; } }
 @media(max-width:560px) { .studio-header { height:60px; padding:0 14px; }.studio-wordmark { font-size:21px; }.studio-wordmark small { font-size:6px; }.studio-back { font-size:10px; }.studio-live { font-size:6px; }.studio-layout { padding:24px 13px; }.studio-stage-top h1 { font-size:27px; }.camera-frame { aspect-ratio:4/5; }.camera-overlay { padding:15px; }.studio-controls { gap:25px; }.studio-side { display:block; }.studio-side-heading { padding-bottom:16px; }.studio-gallery { margin-top:22px; }.studio-privacy { margin-top:20px; }.studio-footer { padding:13px; } }
+
+/* Face Landmarker visualization */
+.face-landmarks-canvas { position:absolute; z-index:2; inset:0; width:100%; height:100%; object-fit:cover; pointer-events:none; }
+.face-landmarks-canvas.mirrored { transform:scaleX(-1); }
+.vision-status { position:absolute; z-index:3; left:50%; bottom:17px; transform:translateX(-50%); display:flex; align-items:center; gap:8px; max-width:calc(100% - 32px); padding:8px 11px; border:1px solid #ffffff30; border-radius:20px; background:#17171bd9; color:#fff; font-size:8px; font-weight:700; letter-spacing:.35px; white-space:nowrap; backdrop-filter:blur(8px); }
+.vision-status-dot { width:7px; height:7px; flex:0 0 auto; border-radius:50%; background:#d3b65c; }
+.vision-ready { background:#c7e56b; box-shadow:0 0 0 3px #c7e56b25; }
+.vision-no-face { background:#d3b65c; }
+.vision-error { background:#f27e70; }
