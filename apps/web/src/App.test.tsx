@@ -25,13 +25,24 @@ describe('IRIS onboarding experience', () => {
     expect(screen.getByRole('button', { name: /send reset link/i })).toBeInTheDocument()
   })
 
-  it('shows a confirmation state after submitting password recovery', () => {
+  it('explains that password recovery needs Supabase configuration', () => {
     render(<App />)
     fireEvent.click(screen.getByRole('button', { name: /i already have an account/i }))
     fireEvent.click(screen.getByRole('button', { name: /forgot password/i }))
     fireEvent.change(screen.getByLabelText(/email address/i), { target: { value: 'hello@example.com' } })
     fireEvent.click(screen.getByRole('button', { name: /send reset link/i }))
-    expect(screen.getByRole('heading', { name: /check your inbox/i })).toBeInTheDocument()
+    expect(screen.getByRole('alert')).toHaveTextContent(/supabase is configured/i)
+  })
+
+  it('shows a clear setup message when a visitor submits sign up without auth credentials', () => {
+    render(<App />)
+    fireEvent.click(screen.getByRole('button', { name: /create your account/i }))
+    fireEvent.change(screen.getByLabelText(/your name/i), { target: { value: 'Test User' } })
+    fireEvent.change(screen.getByLabelText(/email address/i), { target: { value: 'test@example.com' } })
+    fireEvent.change(screen.getByLabelText(/password/i), { target: { value: 'password123' } })
+    fireEvent.click(screen.getByRole('checkbox', { name: /terms of service/i }))
+    fireEvent.click(screen.getByRole('button', { name: /create account/i }))
+    expect(screen.getByRole('status')).toHaveTextContent(/VITE_SUPABASE_URL/i)
   })
 
   it('lets visitors explore the dashboard without pretending they are authenticated', () => {
