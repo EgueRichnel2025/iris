@@ -327,3 +327,73 @@ Le premier lint a signalé des avertissements liés à l'accès à une ref dans 
 3. Ajouter l'analyse des points de bouche et de l'orientation de tête avec des seuils calibrables.
 4. Concevoir le premier moteur de déformation de bouche sur une copie du flux, sans altérer la capture originale.
 5. Étendre ensuite aux déformations de tête : Big Head, Small Head, élargissement, rétrécissement et squash/stretch.
+
+---
+
+## Session 2026-11-17 — Responsive hardening et branchement de l'authentification
+
+### Objectifs
+- Corriger les débordements et les dispositions fragiles sur mobile/tablette/desktop.
+- Remplacer les faux retours de formulaire par une vraie intégration d'authentification.
+- Documenter les paramètres externes nécessaires sans exposer de secret.
+
+### Responsive
+- Ajout d'une couche CSS de durcissement responsive pour Splash, Sign In, Sign Up, Recovery, Explore et Camera Studio.
+- Prévention des débordements horizontaux au niveau de la page et des conteneurs.
+- Réduction des colonnes, espacements et tailles typographiques selon les breakpoints.
+- Navigation basse du Dashboard adaptée aux petits écrans avec prise en compte de la safe area.
+- Grille d'effets conservée en deux colonnes sur mobile ; les composants ont des largeurs minimales contrôlées.
+- Camera Studio passe en colonne unique sur tablette/mobile, avec cadre vidéo vertical sur téléphone.
+- Formulaires et champs contraints à la largeur disponible ; ajustements spécifiques aux écrans de 320–390 px et aux faibles hauteurs desktop.
+
+### Authentification
+- Ajout de `@supabase/supabase-js` au workspace web.
+- Création de `apps/web/src/lib/supabase.ts` : client initialisé uniquement lorsque les deux variables Vite sont présentes.
+- Inscription réelle via `supabase.auth.signUp`, avec le nom transmis comme métadonnée `full_name`.
+- Connexion réelle via `supabase.auth.signInWithPassword`.
+- Récupération réelle via `supabase.auth.resetPasswordForEmail`.
+- Gestion des états de chargement et affichage des erreurs renvoyées par Supabase.
+- En l'absence de configuration, les formulaires expliquent explicitement quelles variables ajouter au lieu d'afficher une fausse confirmation.
+- Ajout des modèles de variables dans `apps/web/.env.example` et `.env.example`.
+- Documentation du paramétrage Supabase dans `docs/development/AUTHENTICATION_SETUP.md`.
+
+### Tests
+- Mise à jour du test de récupération pour vérifier le message de configuration quand Supabase n'est pas paramétré.
+- Ajout d'un test du parcours d'inscription sans identifiants de backend.
+- Résultats finaux :
+  - `npm test` : 3 fichiers, 13 tests réussis.
+  - `npm run lint` : 0 warning, 0 erreur.
+  - `npm run typecheck` : réussi.
+  - `npm run build` : réussi.
+  - `git diff --check` : réussi.
+- Le build signale encore un chunk JavaScript supérieur à 500 kB, principalement lié au moteur MediaPipe. Une séparation différée du bundle est à planifier.
+- Les breakpoints CSS sont couverts par inspection et tests unitaires fonctionnels ; un contrôle visuel manuel sur plusieurs tailles d'écran reste nécessaire.
+
+### Configuration utilisateur encore nécessaire
+- Créer/choisir un projet Supabase.
+- Copier `apps/web/.env.example` vers `apps/web/.env.local`.
+- Renseigner `VITE_SUPABASE_URL` et la clé publique publishable/anon.
+- Configurer les URL autorisées et l'envoi d'emails dans Supabase.
+- Aucun compte réel ne peut être créé tant que ces paramètres ne sont pas fournis.
+- Ne jamais utiliser la clé `service_role` dans le frontend.
+
+### Fichiers principaux
+- `apps/web/src/index.css`
+- `apps/web/src/App.tsx`
+- `apps/web/src/App.test.tsx`
+- `apps/web/src/lib/supabase.ts`
+- `apps/web/package.json`
+- `package-lock.json`
+- `apps/web/.env.example`
+- `.env.example`
+- `docs/development/AUTHENTICATION_SETUP.md`
+
+### Commits
+À créer après revue : intégration Supabase, correctifs responsive, puis documentation/journal. Push à confirmer séparément.
+
+### Prochaines actions
+1. Récupérer les deux paramètres publics du projet Supabase et les placer dans `apps/web/.env.local` (fichier non versionné).
+2. Tester une inscription et une connexion avec une vraie adresse email.
+3. Ajouter la restauration de session et les routes protégées avant de considérer l'authentification complète.
+4. Vérifier visuellement les écrans sur un téléphone réel et sur plusieurs largeurs d'écran.
+5. Charger MediaPipe à la demande pour réduire le bundle initial.
