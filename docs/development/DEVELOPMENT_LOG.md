@@ -217,3 +217,56 @@ A enregistrer apres creation des commits atomiques et push.
 2. Pousser les changements sur `origin/main`.
 3. Demarrer Camera Studio : demande de permission camera, flux video, selection camera et gestion des erreurs.
 4. Integrer le suivi facial et les premiers effets apres validation du flux video.
+
+---
+
+## Session 2026-11-17 — Camera Studio : acces camera, photo et video
+
+### Objectif
+Remplacer le placeholder Camera Studio par une premiere experience camera reelle, executee localement dans le navigateur, avec controle du flux et capture de medias.
+
+### Realisations
+- Creation du composant autonome `CameraStudio.tsx`.
+- Demande de permission camera uniquement apres action explicite de l'utilisateur.
+- Ouverture du flux via `navigator.mediaDevices.getUserMedia()`, avec contraintes video HD et mode selfie par defaut.
+- Apercu video temps reel, miroir selfie et bascule vers la camera arriere.
+- Gestion des cas d'erreur : API indisponible / contexte non securise, permission refusee, aucune camera trouvee, camera occupee et erreur generique.
+- Capture photo via Canvas, export JPEG et telechargement local.
+- Enregistrement video via MediaRecorder, assemblage Blob WebM et telechargement local.
+- Affichage du dernier media capture avec possibilite de le telecharger a nouveau.
+- Arret des pistes media a la sortie de Camera Studio et liberation de l'URL objet du dernier media.
+- Ajout d'indicateurs d'etat, controles accessibles, etats des boutons, interface responsive desktop/mobile.
+- Integration du nouveau composant dans la navigation React.
+- Ajout de quatre tests dedies au consentement camera, au refus de permission, au changement de camera et au retour vers Explore.
+
+### Fichiers modifies
+- `apps/web/src/CameraStudio.tsx` — logique camera, capture et enregistrement.
+- `apps/web/src/CameraStudio.test.tsx` — tests du composant Camera Studio.
+- `apps/web/src/App.tsx` — integration dans le parcours de navigation.
+- `apps/web/src/App.test.tsx` — mise a jour du test de navigation vers le vrai studio.
+- `apps/web/src/index.css` — interface du studio et adaptations responsive.
+
+### Validations executees
+| Commande | Resultat |
+| --- | --- |
+| `npm test` | Reussi — 11 tests passes sur 2 fichiers |
+| `npm run lint` | Reussi — 0 warning, 0 erreur |
+| `npm run typecheck` | Reussi |
+| `npm run build` | Reussi — bundle production genere |
+| `git diff --check` | Reussi |
+
+### Limites et points a verifier sur appareil
+- Le test automatique simule l'API MediaDevices ; il ne remplace pas un essai avec une vraie webcam.
+- L'acces camera necessite HTTPS en production, ou localhost en developpement.
+- La capture photo est exportee en JPEG ; l'enregistrement video utilise WebM lorsque le navigateur le prend en charge.
+- Les effets Computer Vision ne sont pas encore appliques au flux. La prochaine etape est l'integration de MediaPipe Face Landmarker et le dessin des landmarks.
+- Les medias sont telecharges localement ; aucun upload ni partage distant n'est encore implemente.
+
+### Commits
+A enregistrer en commits atomiques apres cette validation.
+
+### Prochaines actions
+1. Committer le composant camera, son integration et la documentation separement.
+2. Verifier le flux avec une webcam reelle sur localhost et sur un telephone via HTTPS.
+3. Integrer MediaPipe Face Landmarker, afficher les landmarks et mesurer la stabilite du tracking.
+4. Implementer ensuite les premiers effets de deformation faciale : bouche et tete.
