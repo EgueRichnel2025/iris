@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { supabase } from './lib/supabase'
 import CameraStudio from './CameraStudio'
 
@@ -46,7 +46,7 @@ function AuthLayout({ mode, onNavigate }: { mode: 'signin' | 'signup'; onNavigat
     try {
       if (isSignup) {
         const name = String(form.get('name') ?? '').trim()
-        const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { full_name: name } } })
+        const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { full_name: name }, emailRedirectTo: window.location.origin } })
         if (error) throw error
         setMessage(data.session ? 'Your IRIS account has been created. Welcome!' : 'Account created. Check your email to confirm your address before signing in.')
         if (data.session) onNavigate('dashboard')
@@ -61,7 +61,7 @@ function AuthLayout({ mode, onNavigate }: { mode: 'signin' | 'signup'; onNavigat
       setBusy(false)
     }
   }
-  return <main className="auth-screen"><VisualPanel mode={isSignup ? 'signup' : 'welcome'} /><section className="auth-side"><div className="auth-top"><Brand /><button className="text-button" onClick={() => onNavigate('splash')}>← Back to home</button></div><div className="auth-content"><span className="eyebrow">{isSignup ? 'JOIN THE PLAYGROUND' : 'WELCOME BACK'}</span><h1>{isSignup ? <>Let's make<br /><em>some magic.</em></> : <>Good to see<br />you <em>again.</em></>}</h1><p className="form-intro">{isSignup ? 'Create your free IRIS account.' : 'Sign in to pick up where your creativity left off.'}</p>{!isSignup && <button className="google-button" type="button" onClick={() => setMessage('Google sign-in will be connected when authentication is implemented.')}><span className="google-g">G</span> Continue with Google</button>}{!isSignup && <div className="form-divider"><span>OR CONTINUE WITH EMAIL</span></div>}<form className="auth-form" onSubmit={handleSubmit}>{isSignup && <label>Your name<input name="name" type="text" placeholder="What should we call you?" autoComplete="name" required /></label>}<label>Email address<input name="email" type="email" placeholder="you@example.com" autoComplete="email" required /></label><label>Password<div className="password-field"><input name="password" type={showPassword ? 'text' : 'password'} placeholder={isSignup ? 'At least 8 characters' : 'Enter your password'} minLength={isSignup ? 8 : undefined} autoComplete={isSignup ? 'new-password' : 'current-password'} required /><button type="button" onClick={() => setShowPassword(!showPassword)}>{showPassword ? 'Hide' : 'Show'}</button></div></label>{!isSignup && <div className="form-options"><label className="checkbox-label"><input type="checkbox" /> Remember me</label><button className="inline-button" type="button" onClick={() => onNavigate('recovery')}>Forgot password?</button></div>}{isSignup && <label className="checkbox-label terms-check"><input type="checkbox" required /> I agree to the Terms of Service and Privacy Policy.</label>}<button className="button button-primary submit-button" type="submit" disabled={busy}>{busy ? 'Please wait…' : isSignup ? 'Create account' : 'Sign in'} <span>→</span></button>{message && <div className="form-message" role="status">{message}<button className="inline-button" type="button" onClick={() => onNavigate('dashboard')}>Explore preview →</button></div>}</form><p className="auth-switch">{isSignup ? 'Already have an account?' : 'New to IRIS?'} <button onClick={() => onNavigate(isSignup ? 'signin' : 'signup')}>{isSignup ? 'Sign in' : 'Create an account'}</button></p><p className="legal-note">{isSignup ? 'No spam. Just good vibes and great effects.' : 'By continuing, you agree to our Terms of Service and Privacy Policy.'}</p></div><div className="auth-footer"><span>IRIS © 2026</span><span>SEE BEYOND YOURSELF.</span></div></section></main>
+  return <main className="auth-screen"><VisualPanel mode={isSignup ? 'signup' : 'welcome'} /><section className="auth-side"><div className="auth-top"><Brand /><button className="text-button" onClick={() => onNavigate('splash')}>← Back to home</button></div><div className="auth-content"><span className="eyebrow">{isSignup ? 'JOIN THE PLAYGROUND' : 'WELCOME BACK'}</span><h1>{isSignup ? <>Let's make<br /><em>some magic.</em></> : <>Good to see<br />you <em>again.</em></>}</h1><p className="form-intro">{isSignup ? 'Create your free IRIS account.' : 'Sign in to pick up where your creativity left off.'}</p><form className="auth-form" onSubmit={handleSubmit}>{isSignup && <label>Your name<input name="name" type="text" placeholder="What should we call you?" autoComplete="name" required /></label>}<label>Email address<input name="email" type="email" placeholder="you@example.com" autoComplete="email" required /></label><label>Password<div className="password-field"><input name="password" type={showPassword ? 'text' : 'password'} placeholder={isSignup ? 'At least 8 characters' : 'Enter your password'} minLength={isSignup ? 8 : undefined} autoComplete={isSignup ? 'new-password' : 'current-password'} required /><button type="button" onClick={() => setShowPassword(!showPassword)}>{showPassword ? 'Hide' : 'Show'}</button></div></label>{!isSignup && <div className="form-options"><label className="checkbox-label"><input type="checkbox" /> Remember me</label><button className="inline-button" type="button" onClick={() => onNavigate('recovery')}>Forgot password?</button></div>}{isSignup && <label className="checkbox-label terms-check"><input type="checkbox" required /> I agree to the Terms of Service and Privacy Policy.</label>}<button className="button button-primary submit-button" type="submit" disabled={busy}>{busy ? 'Please wait…' : isSignup ? 'Create account' : 'Sign in'} <span>→</span></button>{message && <div className="form-message" role="status">{message}<button className="inline-button" type="button" onClick={() => onNavigate('dashboard')}>Explore preview →</button></div>}</form><p className="auth-switch">{isSignup ? 'Already have an account?' : 'New to IRIS?'} <button onClick={() => onNavigate(isSignup ? 'signin' : 'signup')}>{isSignup ? 'Sign in' : 'Create an account'}</button></p><p className="legal-note">{isSignup ? 'No spam. Just good vibes and great effects.' : 'By continuing, you agree to our Terms of Service and Privacy Policy.'}</p></div><div className="auth-footer"><span>IRIS © 2026</span><span>SEE BEYOND YOURSELF.</span></div></section></main>
 }
 
 function Recovery({ onNavigate }: { onNavigate: (screen: Screen) => void }) {
@@ -87,6 +87,18 @@ function Dashboard({ onNavigate }: { onNavigate: (screen: Screen) => void }) {
 
 function App() {
   const [screen, setScreen] = useState<Screen>('splash')
+  useEffect(() => {
+    if (!supabase) return
+    let active = true
+    supabase.auth.getSession().then(({ data }) => {
+      if (active && data.session) setScreen('dashboard')
+    })
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (active && session) setScreen('dashboard')
+      if (active && !session) setScreen('splash')
+    })
+    return () => { active = false; subscription.unsubscribe() }
+  }, [])
   return <div className="app-root">{screen === 'splash' && <Splash onNavigate={setScreen} />}{(screen === 'signin' || screen === 'signup') && <AuthLayout mode={screen} onNavigate={setScreen} />}{screen === 'recovery' && <Recovery onNavigate={setScreen} />}{screen === 'dashboard' && <Dashboard onNavigate={setScreen} />}{screen === 'camera' && <CameraStudio onBack={() => setScreen('dashboard')} />}</div>
 }
 
