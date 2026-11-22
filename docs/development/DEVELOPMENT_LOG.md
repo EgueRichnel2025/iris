@@ -544,3 +544,12 @@ Les changements ont ensuite été découpés en commits et publiés sur `origin/
 - Smoke test de l'exécutable compilé : processus lancé sans erreur, fenêtre maintenue ouverte et caméra `/dev/video0` occupée par le processus IRIS, ce qui confirme l'ouverture de la caméra par le bundle.
 - Le binaire Linux a été relancé sur le bureau et reste ouvert pour la démonstration.
 - Cette compilation est un bundle Linux. Le fichier Windows `.exe` devra être produit en lançant `desktop/build.ps1` sur Windows ; PyInstaller ne fait pas de compilation croisée entre systèmes.
+
+
+### Confirmation complémentaire de l'exécutable compilé
+- Le binaire compilé a été relancé directement depuis `desktop/dist/IRIS/IRIS`.
+- Une trace système sur le bundle a confirmé 55 buffers vidéo V4L2 livrés avec succès au processus IRIS pendant le smoke test.
+- Un lancement interactif ultérieur a confirmé que le processus IRIS détenait bien `/dev/video0`.
+- Le bundle Linux est généré et exécutable sur le poste Ubuntu utilisé pour cette session. Il n'est pas un exécutable Windows.
+- Commits additionnels : `b248990` (correction des scripts de lancement/build pour ne pas relancer une synchronisation complète) et `d270274` (documentation du build Linux). Les deux sont publiés sur `origin/main`.
+- La branche `main` est synchronisée avec `origin/main` après le push du commit `d270274`.
