@@ -2,7 +2,7 @@
 set -euo pipefail
 
 cd "$(dirname "$0")"
-uv run pyinstaller \
+uv run --no-sync pyinstaller \
   --noconfirm \
   --clean \
   --windowed \

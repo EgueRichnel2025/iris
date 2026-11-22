@@ -1,7 +1,7 @@
 $ErrorActionPreference = "Stop"
 Set-Location $PSScriptRoot
 
-uv run pyinstaller `
+uv run --no-sync pyinstaller `
   --noconfirm `
   --clean `
   --windowed `

@@ -17,7 +17,7 @@ From the repository root:
 ```bash
 cd desktop
 uv sync --extra dev
-uv run iris
+uv run --no-sync python -m iris
 ```
 
 Alternatively, after activating the environment:
@@ -29,7 +29,7 @@ python -m iris
 ## Checks
 
 ```bash
-uv run pytest
+uv run --no-sync pytest
 ```
 
 ## Build a standalone application
