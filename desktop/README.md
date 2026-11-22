@@ -32,6 +32,18 @@ python -m iris
 uv run pytest
 ```
 
-## Build
+## Build a standalone application
 
-Build instructions will be documented after the desktop application is validated on the target platform.
+On Linux:
+
+```bash
+./build.sh
+```
+
+On Windows PowerShell:
+
+```powershell
+.\build.ps1
+```
+
+PyInstaller builds for the operating system on which it runs. Run the PowerShell script on Windows to produce the Windows executable.
