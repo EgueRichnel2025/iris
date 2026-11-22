@@ -459,3 +459,66 @@ Le fournisseur Google est désactivé et aucun client OAuth n'a été configuré
 2. Configurer SMTP pour envoyer les emails aux utilisateurs externes.
 3. Effectuer un test d'inscription réel avec une adresse email contrôlée, puis confirmer le compte et se connecter.
 4. Ajouter le profil utilisateur en base et les politiques RLS avant les fonctionnalités sociales.
+
+
+---
+
+## Session 2026-11-22 — Pivot vers IRIS Desktop
+
+### Décision produit
+Le produit actif devient une application native de bureau destinée aux démonstrations locales. L'application web, l'authentification, les profils, les fonctions sociales, le backend et les dépendances cloud ne font plus partie du périmètre actif. L'ancien code web est conservé dans `legacy/web/` afin de préserver le travail et l'historique Git.
+
+### Réalisations
+- Création de `desktop/` comme nouveau projet Python indépendant.
+- Définition de Python 3.12+ et des dépendances : MediaPipe, NumPy, OpenCV contrib et PySide6 Essentials.
+- Création d'une fenêtre PySide6 avec une interface camera-first, un panneau de filtres, un aperçu caméra, des contrôles et un indicateur FPS.
+- Création d'un thread caméra OpenCV distinct du thread UI.
+- Ajout de six effets locaux : Original, Warm glow, Cool tone, Noir, Vivid et Soft focus.
+- Ajout de la capture photo vers `~/Pictures/IRIS`.
+- Ajout de tests unitaires pour les effets d'image et les entrées invalides.
+- Mise à jour du README racine et ajout du plan produit/technique desktop.
+- Remplacement du workflow GitHub Actions npm par un workflow Python/uv.
+- Retrait des manifestes npm actifs de la racine et déplacement du code web suivi par Git dans `legacy/web/`. Les ressources locales ignorées ne sont pas versionnées.
+
+### Fichiers principaux créés
+- `desktop/pyproject.toml`
+- `desktop/uv.lock`
+- `desktop/README.md`
+- `desktop/iris/__init__.py`
+- `desktop/iris/__main__.py`
+- `desktop/iris/camera.py`
+- `desktop/iris/effects.py`
+- `desktop/iris/main_window.py`
+- `desktop/tests/test_effects.py`
+- `docs/requirements/IRIS_DESKTOP_PLAN.md`
+
+### Validations et blocages
+- Dépôt initial vérifié propre sur `main`, synchronisé avec `origin/main` avant le début des changements.
+- `git ls-remote` a confirmé l'accès au dépôt GitHub.
+- Première résolution de dépendances refusée car la plage Python déclarée incluait Python 3.10/3.11, incompatibles avec les versions NumPy retenues. La version minimale a été relevée à Python 3.12.
+- La seconde synchronisation `uv sync --extra dev` a résolu 34 paquets et commencé le téléchargement des wheels MediaPipe, OpenCV contrib et PySide6 Essentials. Au moment de la rédaction, le processus d'installation est encore en cours ; aucune réussite d'installation n'est déclarée.
+- Les tests, le lancement GUI, l'accès à une webcam physique, le build PyInstaller et la CI distante restent à exécuter.
+
+### État Git
+- Aucun commit n'a encore été créé pour cette migration.
+- Aucun push n'a été effectué.
+- Les changements doivent être inspectés, validés, puis découpés en commits atomiques avant publication.
+
+### Prochaines actions
+1. Terminer `uv sync --extra dev` et corriger les éventuelles incompatibilités de dépendances.
+2. Exécuter `uv run pytest` et les contrôles de compilation Python.
+3. Lancer IRIS sur le bureau Linux et vérifier la caméra physique.
+4. Améliorer les états caméra et la gestion du cycle de vie si nécessaire.
+5. Valider la compilation Windows sur l'environnement Windows cible avec PyInstaller.
+6. Créer les commits validés, puis pousser sur `origin/main`.
+7. Implémenter le Face Landmarker Python, les accessoires AR et les déformations faciales.
+
+
+### Vérifications complémentaires — caméra et syntaxe
+- `python3 -m compileall -q desktop/iris desktop/tests` : réussi.
+- `git diff --check` : réussi.
+- Tests unitaires exécutés avec l'environnement Python système déjà présent : `9 passed in 0.33s`.
+- Test caméra OpenCV direct : `/dev/video0` ouvert et une frame lue (640×480).
+- Le premier lancement de l'interface a montré que le backend OpenCV automatique sélectionnait GStreamer et échouait sur ce poste. Le backend a été rendu explicite selon l'OS (V4L2 Linux, DirectShow Windows, AVFoundation macOS).
+- Test de la classe `CameraThread` après correction : état `CAMÉRA ACTIVE`, 29 frames reçues en 2,2 secondes, arrêt propre.
+- L'interface a été relancée sur le bureau après le test du thread caméra. La vérification visuelle du rendu et la capture photo par clic restent à effectuer manuellement.
