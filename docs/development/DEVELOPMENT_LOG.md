@@ -533,3 +533,14 @@ Les changements ont ensuite été découpés en commits et publiés sur `origin/
 | `63caeff` | `docs(development): record IRIS desktop migration` | Publié |
 | `c0afd52` | `chore(desktop): ignore Python package metadata` | Publié |
 | `a18859b` | `build(desktop): add standalone packaging scripts` | Commit local, push à confirmer |
+
+
+### Installation légère, tests et compilation Linux
+- La synchronisation complète des dépendances isolées a été interrompue après plusieurs minutes de téléchargement très lent des gros wheels Qt/OpenCV/MediaPipe. Le lockfile complet reste disponible pour une installation reproductible sur une connexion plus rapide.
+- L'environnement local a été recréé avec le Python système 3.14.4 et l'option system-site-packages, car cet environnement possède déjà NumPy, OpenCV et PySide6 installés. PyInstaller 6.22.3 et pytest 9.2.0 ont été ajoutés dans le venv.
+- `uv run --no-sync pytest -q` : réussi — 9 tests passés.
+- Compilation PyInstaller Linux : réussie — dossier `desktop/dist/IRIS/` généré.
+- Exécutable Linux : `desktop/dist/IRIS/IRIS` (environ 4,6 Mo pour le binaire principal, les bibliothèques sont regroupées dans le dossier).
+- Smoke test de l'exécutable compilé : processus lancé sans erreur, fenêtre maintenue ouverte et caméra `/dev/video0` occupée par le processus IRIS, ce qui confirme l'ouverture de la caméra par le bundle.
+- Le binaire Linux a été relancé sur le bureau et reste ouvert pour la démonstration.
+- Cette compilation est un bundle Linux. Le fichier Windows `.exe` devra être produit en lançant `desktop/build.ps1` sur Windows ; PyInstaller ne fait pas de compilation croisée entre systèmes.

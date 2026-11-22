@@ -47,3 +47,10 @@ On Windows PowerShell:
 ```
 
 PyInstaller builds for the operating system on which it runs. Run the PowerShell script on Windows to produce the Windows executable.
+
+## Build output
+
+- Linux: `dist/IRIS/IRIS`
+- Windows: `dist/IRIS/IRIS.exe`
+
+The current validated build is the Linux bundle. The Windows PowerShell build script must be run on a Windows machine.
