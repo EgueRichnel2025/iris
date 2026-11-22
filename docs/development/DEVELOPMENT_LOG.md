@@ -522,3 +522,14 @@ Le produit actif devient une application native de bureau destinée aux démonst
 - Le premier lancement de l'interface a montré que le backend OpenCV automatique sélectionnait GStreamer et échouait sur ce poste. Le backend a été rendu explicite selon l'OS (V4L2 Linux, DirectShow Windows, AVFoundation macOS).
 - Test de la classe `CameraThread` après correction : état `CAMÉRA ACTIVE`, 29 frames reçues en 2,2 secondes, arrêt propre.
 - L'interface a été relancée sur le bureau après le test du thread caméra. La vérification visuelle du rendu et la capture photo par clic restent à effectuer manuellement.
+
+
+### Historique Git mis à jour après validation
+Les changements ont ensuite été découpés en commits et publiés sur `origin/main` :
+| Commit | Message | État |
+| --- | --- | --- |
+| `71bb495` | `feat(desktop): add native camera studio and local filters` | Publié |
+| `b550678` | `docs(product): define IRIS desktop direction and CI` | Publié |
+| `63caeff` | `docs(development): record IRIS desktop migration` | Publié |
+| `c0afd52` | `chore(desktop): ignore Python package metadata` | Publié |
+| `a18859b` | `build(desktop): add standalone packaging scripts` | Commit local, push à confirmer |
