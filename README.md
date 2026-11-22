@@ -2,47 +2,51 @@
 
 **See beyond yourself.**
 
-IRIS is a browser-based creative camera focused on real-time computer vision, augmented-reality filters, facial deformations and creative sharing.
+IRIS is a local desktop camera application for real-time visual filters and facial effects. It is designed to be launched directly on a computer for live demonstrations.
 
-## Repository structure
+The camera feed is processed on the device. No account, web service, cloud upload or internet connection is required for the camera experience.
 
-```text
-iris/
-├── apps/
-│   └── web/          # React + TypeScript browser application
-├── docs/
-│   └── requirements/ # Product requirements and design direction
-├── packages/         # Shared engines and reusable packages
-└── prototype/        # Approved interactive product prototype
-```
+## Current application
 
-## Requirements
+The active application lives in [desktop/](desktop/).
 
-- Node.js >= 22.12
-- npm >= 10.9
+- Python 3.12+
+- PySide6 desktop interface
+- OpenCV camera capture and image processing
+- MediaPipe dependency reserved for the upcoming face-tracking layer
+- Local photo capture
 
-## Development
+## Run IRIS
+
+Install [uv](https://docs.astral.sh/uv/) and Python 3.12+, then run:
 
 ```bash
-npm install
-npm run dev
+cd desktop
+uv sync --extra dev
+uv run iris
 ```
 
-## Quality checks
+## Validate
 
 ```bash
-npm run lint
-npm run typecheck
-npm test
-npm run build
+cd desktop
+uv run pytest
 ```
 
-## Product principles
+## Product direction
 
-- Camera processing runs locally in the browser by default.
-- Camera access starts only after explicit user permission.
-- Captured media is never uploaded or published without explicit action.
-- Mobile-first, accessible and performance-conscious experiences.
-- Facial deformations (mouth and head) are core product capabilities.
+IRIS is intentionally a small, camera-first desktop experience:
 
-See [the project plan](docs/requirements/IRIS_PROJECT_PLAN.md) and [the frontend design direction](docs/requirements/IRIS_FRONTEND_DESIGN.md).
+1. Launch the application.
+2. See the live camera preview.
+3. Select a visual effect.
+4. Capture a photo or record a video.
+5. Build a standalone executable for demonstrations.
+
+Core effects planned for the face engine include accessories, expression-reactive filters, mouth deformations and head/face deformations.
+
+The former React web experiment is no longer the active product. Its history is preserved in Git.
+
+## Development notes
+
+See [desktop/README.md](desktop/README.md) and [docs/development/DEVELOPMENT_LOG.md](docs/development/DEVELOPMENT_LOG.md).

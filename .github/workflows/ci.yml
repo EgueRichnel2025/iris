@@ -1,4 +1,4 @@
-name: CI
+name: IRIS Desktop CI
 
 on:
   push:
@@ -10,30 +10,24 @@ permissions:
   contents: read
 
 jobs:
-  quality:
-    name: Build, lint and test
+  test:
+    name: Desktop engine tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
         with:
-          node-version: 24
-          cache: npm
+          enable-cache: true
+          cache-dependency-glob: desktop/uv.lock
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Set up Python
+        run: uv python install 3.13
 
-      - name: Lint
-        run: npm run lint
-
-      - name: Typecheck
-        run: npm run typecheck
+      - name: Install desktop dependencies
+        run: uv sync --directory desktop --extra dev
 
       - name: Run tests
-        run: npm test
-
-      - name: Build
-        run: npm run build
+        run: uv run --directory desktop pytest
