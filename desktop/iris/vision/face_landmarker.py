@@ -8,6 +8,8 @@ from pathlib import Path
 import numpy as np
 from numpy.typing import NDArray
 
+from iris.vision.model_assets import face_landmarker_model_path
+
 
 @dataclass(frozen=True, slots=True)
 class FaceLandmarkResult:
@@ -30,14 +32,16 @@ class FaceLandmarker:
 
     def __init__(
         self,
-        model_path: str | Path,
+        model_path: str | Path | None = None,
         *,
         num_faces: int = 1,
         min_detection_confidence: float = 0.5,
         min_presence_confidence: float = 0.5,
         min_tracking_confidence: float = 0.5,
     ) -> None:
-        self.model_path = Path(model_path)
+        self.model_path = (
+            Path(model_path) if model_path is not None else face_landmarker_model_path()
+        )
         self.num_faces = num_faces
         self.min_detection_confidence = min_detection_confidence
         self.min_presence_confidence = min_presence_confidence

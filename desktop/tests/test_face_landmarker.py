@@ -152,3 +152,16 @@ def test_close_is_idempotent_and_resets_timestamp(tmp_path, monkeypatch):
 
     assert task.closed
     assert not detector.is_open
+
+
+
+def test_detector_uses_default_model_asset_path(monkeypatch, tmp_path):
+    expected = tmp_path / "face_landmarker.task"
+    monkeypatch.setattr(
+        "iris.vision.face_landmarker.face_landmarker_model_path",
+        lambda: expected,
+    )
+
+    detector = FaceLandmarker()
+
+    assert detector.model_path == expected
