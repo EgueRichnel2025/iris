@@ -1,17 +1,20 @@
 # -*- mode: python ; coding: utf-8 -*-
-from PyInstaller.utils.hooks import collect_all
+from PyInstaller.utils.hooks import collect_data_files, collect_dynamic_libs
 
 datas = [
     ("assets/models/face_landmarker.task", "assets/models"),
 ]
-binaries = []
-hiddenimports = []
-
-for package in ("cv2", "mediapipe"):
-    package_datas, package_binaries, package_hiddenimports = collect_all(package)
-    datas += package_datas
-    binaries += package_binaries
-    hiddenimports += package_hiddenimports
+datas += collect_data_files("mediapipe")
+binaries = collect_dynamic_libs("mediapipe")
+hiddenimports = [
+    "mediapipe.tasks",
+    "mediapipe.tasks.python",
+    "mediapipe.tasks.python.vision",
+    "mediapipe.tasks.python.vision.face_landmarker",
+    "mediapipe.tasks.python.core.base_options",
+    "mediapipe.tasks.python.vision.core.vision_task_running_mode",
+    "mediapipe.python._framework_bindings",
+]
 
 a = Analysis(
     ["iris/__main__.py"],
@@ -22,7 +25,12 @@ a = Analysis(
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=[],
+    excludes=[
+        "mediapipe.tasks.python.test",
+        "scipy",
+        "matplotlib",
+        "pytest",
+    ],
     noarchive=False,
     optimize=0,
 )
