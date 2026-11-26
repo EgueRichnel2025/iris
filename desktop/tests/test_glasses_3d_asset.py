@@ -65,3 +65,13 @@ def test_rejects_invalid_json_chunk(tmp_path):
 
     with pytest.raises(Glasses3DAssetError, match="JSON chunk is invalid"):
         read_glb_document(path)
+
+
+def test_scene_is_not_initialized_before_qt_widget_is_shown():
+    from iris.vision.glasses_3d import Glasses3DScene
+
+    scene = Glasses3DScene(
+        widget=object(), renderer=object(), reader=object(), actor=object()
+    )
+
+    assert scene.initialized is False

@@ -58,6 +58,7 @@ class Glasses3DScene:
     renderer: Any
     reader: Any
     actor: Any
+    initialized: bool = False
 
 
 def create_glasses_3d_scene(model_path: str | Path, parent: Any = None) -> Glasses3DScene:
@@ -95,7 +96,14 @@ def create_glasses_3d_scene(model_path: str | Path, parent: Any = None) -> Glass
 
     widget.GetRenderWindow().AddRenderer(renderer)
     renderer.ResetCamera()
-    widget.Initialize()
-    widget.GetRenderWindow().Render()
 
     return Glasses3DScene(widget=widget, renderer=renderer, reader=reader, actor=actor)
+
+
+def initialize_glasses_3d_scene(scene: Glasses3DScene) -> None:
+    """Initialize VTK only after its Qt widget has been shown."""
+    if scene.initialized:
+        return
+    scene.widget.Initialize()
+    scene.widget.GetRenderWindow().Render()
+    scene.initialized = True
