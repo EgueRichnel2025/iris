@@ -1079,3 +1079,37 @@ La scène statique charge et rend le GLB dans un widget Qt. Elle n'est pas encor
 
 ### Limites et suite
 Le flux caméra de `MainWindow` reste rendu dans un QLabel. Le widget 3D n'est pas encore intégré en superposition au flux ; aucun rendu « lunettes portées » n'a été validé visuellement. Prochaine étape : mettre en place une surface de rendu compositée compatible avec le contexte graphique de la machine, connecter `face_transform_updated` au thread GUI, puis régler pivot/axes/échelle et occlusion sur la webcam.
+
+
+## Session 2026-11-26 — Préparation du compositing webcam + scène 3D
+
+### Implémentation conservée
+- `CameraThread` publie maintenant `video_frame_ready(object)` contenant une copie RGB (`uint8`, H×W×3) après application des effets, en complément du signal QImage existant.
+- `Glasses3DScene` possède un renderer VTK d'arrière-plan qui reçoit les images par `vtkImageImport` et `vtkImageActor`, ainsi qu'un renderer 3D au premier plan pour le modèle.
+- `update_glasses_video_frame` valide la forme RGB, inverse verticalement les lignes pour respecter l'origine image VTK, met à jour l'importer, positionne le plan vidéo à 100 cm et configure une caméra perspective initiale. La focale utilisée est une approximation (1,25 × dimension image maximale), pas encore une calibration issue des paramètres intrinsèques réels de la webcam.
+- Tests du signal RGB et du compositing (format, orientation, taille, caméra) ajoutés.
+
+### Tentative d'intégration UI et blocage
+- La tentative d'héberger `QVTKRenderWindowInteractor` dans le layout `MainWindow` provoque un crash X11 `BadWindow` (X_ChangeWindowAttributes).
+- Le problème persiste lorsque l'initialisation VTK est différée après l'affichage et lorsque le widget reste visible en permanence.
+- Tous les changements de `MainWindow` liés à cette intégration ont été annulés pour préserver la stabilité de l'application. Le flux vidéo QImage actuel et l'interface existante restent inchangés.
+- Aucune capture de lunettes 3D superposées au visage n'a été obtenue ; ne pas présenter l'intégration comme achevée.
+
+### Validation
+- `pytest -q` : **128 tests réussis**.
+- `compileall iris tests` : réussi.
+- `git diff --check` : réussi.
+- Test visuel MainWindow + QVTK : échoue sous X11 `BadWindow`, identifié comme bloqueur d'intégration.
+
+### Fichiers
+- `desktop/iris/camera.py`
+- `desktop/iris/vision/glasses_3d.py`
+- `desktop/tests/test_camera_vision.py`
+- `desktop/tests/test_glasses_3d_asset.py`
+
+### Commits
+- `feat(camera): publish RGB frames for AR composition`
+- `feat(ar): composite camera frames behind 3D accessories`
+
+### Suite
+Remplacer le widget natif QVTK/X11 par un widget Qt/OpenGL basé sur un contexte OpenGL géré par Qt (`QOpenGLWidget` + `vtkGenericOpenGLRenderWindow`) ou un autre mécanisme de rendu compatible. Ne réintégrer le modèle à `MainWindow` qu'après un smoke test graphique reproductible. Ensuite calibrer les intrinsèques webcam, le repère du modèle, le pivot et l'occlusion.

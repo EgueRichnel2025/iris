@@ -276,3 +276,16 @@ Note technique : les angles utilisent un modèle facial générique et une matri
 | 9 | Commits. | Conversion, tests, propagation pipeline, signal caméra et cycle de vie VTK publiés localement ; push à effectuer/contrôler. |
 
 **Limite actuelle :** l'interface principale affiche toujours le flux caméra dans un QLabel et n'héberge pas encore le widget 3D. Le modèle n'est donc pas encore superposé à l'image. La matrice MediaPipe est désormais disponible côté GUI, mais le repère exact, le cadrage caméra, l'occlusion et le rendu composite restent à valider.
+
+
+### 2026-11-26 — Préparation de la composition vidéo + 3D
+
+| # | Action | Résultat |
+| --- | --- | --- |
+| 1 | Ajout du flux RGB côté caméra. | Nouveau signal `video_frame_ready(object)` émet une copie RGB de chaque frame après effets ; le signal Qt peut être consommé côté interface. |
+| 2 | Composition VTK. | La scène GLB possède maintenant un renderer d'arrière-plan avec `vtkImageImport`/`vtkImageActor` et un renderer 3D au premier plan. La fonction `update_glasses_video_frame` actualise la texture et configure une caméra perspective initiale. |
+| 3 | Tests. | 2 tests de composition vidéo (format RGB, orientation verticale, dimensions, caméra) et assertion du signal RGB ; suite complète **128 tests réussis**. Compilation et `git diff --check` réussis. |
+| 4 | Intégration QVTK dans MainWindow. | Tentative rejetée : le widget `QVTKRenderWindowInteractor` enfant déclenche `X Error: BadWindow` sous X11 dans l'interface IRIS, y compris lorsque l'initialisation est différée et que le widget reste visible. Les changements d'interface ont été annulés pour préserver le lancement normal de l'application. |
+| 5 | Commits. | `feat(camera): publish RGB frames for AR composition` et `feat(ar): composite camera frames behind 3D accessories`. Publication à contrôler. |
+
+**État honnête :** les frames RGB sont disponibles et la scène VTK sait recevoir une image de fond, mais la scène 3D n'est pas encore intégrée à `MainWindow`. L'alignement visuel des lunettes avec le visage et le rendu sur webcam restent non validés. Prochaine étape technique : remplacer le widget VTK natif X11 par une intégration Qt/OpenGL compatible (ou une surface de rendu indépendante), puis refaire le smoke test complet avant de reconnecter l'interface.
