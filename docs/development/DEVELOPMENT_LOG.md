@@ -642,4 +642,4 @@ Commencer le chantier P0 du suivi facial par une brique mathématique indépenda
 Le lisseur est une brique testée mais il n'est pas encore branché au pipeline caméra. L'intégration Face Landmarker attend l'installation complète de MediaPipe et l'ajout du modèle `.task`. Le flux caméra et l'interface existants n'ont pas été modifiés dans cette étape.
 
 ### Commit et publication
-Commit de la brique EMA créé : `b19bdba` — `feat(vision): add temporal landmark smoothing`. Les changements de code sont commités ; le backlog et ce journal enregistrent le hash. La publication sur `origin/main` reste à effectuer après le commit documentaire.
+Commits créés : `b19bdba` — `feat(vision): add temporal landmark smoothing` et `6922ab2` — `docs(development): record landmark smoothing milestone`. Push réussi vers `origin/main` : `ef1adb0..6922ab2 main -> main`. Vérification finale : `main` et `origin/main` pointent sur `6922ab2`, arbre de travail propre.

@@ -80,6 +80,8 @@ L'application de référence est la version native Python située dans `desktop/
 | 5 | Ajout de `desktop/tests/test_smoothing.py`. | 12 cas de test ajoutés, y compris les valeurs limites, les formes invalides et les coordonnées non finies. |
 | 6 | Exécution de la suite complète. | **21 tests réussis** ; `compileall` et `git diff --check` réussis. |
 | 7 | Commit de la brique EMA. | `b19bdba` — `feat(vision): add temporal landmark smoothing`. |
-| 8 | Mise à jour du backlog et du journal avec le hash du commit. | Enregistrée localement ; commit documentaire à créer. |
+| 8 | Mise à jour du backlog et du journal avec le hash du commit. | Commit documentaire `6922ab2` créé. |
+| 9 | Push des commits de cette étape. | Réussi : `ef1adb0..6922ab2 main -> main`. |
+| 10 | Vérification finale de la branche et de l’arbre de travail. | `main` synchronisée avec `origin/main`, arbre de travail propre. |
 
 La détection faciale MediaPipe n'est pas encore intégrée à la caméra : le paquet n'est pas encore installé dans l'environnement actif et le modèle `.task` manque. La prochaine tâche est de finaliser les dépendances, récupérer et versionner proprement l'asset du modèle, puis créer l'adaptateur Face Landmarker.
