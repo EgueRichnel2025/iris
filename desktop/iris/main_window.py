@@ -40,6 +40,8 @@ class MainWindow(QMainWindow):
         self.camera.camera_ready.connect(self._camera_started)
         self.camera.camera_error.connect(self._camera_failed)
         self.camera.fps_updated.connect(self._show_fps)
+        self.camera.face_count_updated.connect(self._show_face_count)
+        self.camera.vision_error.connect(self._vision_failed)
         QTimer.singleShot(450, self.camera.start)
 
     def _build_interface(self) -> None:
@@ -68,6 +70,7 @@ class MainWindow(QMainWindow):
             QPushButton#secondary { background: #EEE9FF; color: #6045C5; }
             QPushButton#secondary:hover { background: #E1D9FF; }
             QLabel#status { color: #477B42; font-size: 11px; font-weight: 800; }
+            QLabel#visionStatus { color: #7357D9; font-size: 11px; font-weight: 800; }
             QLabel#hint { color: #85877F; font-size: 11px; }
             QLabel#sideNote { color: #85877F; font-size: 11px; line-height: 1.4; }
         """)
@@ -133,6 +136,9 @@ class MainWindow(QMainWindow):
         self.status_label = QLabel("INITIALIZING CAMERA")
         self.status_label.setObjectName("status")
         top.addWidget(self.status_label, alignment=Qt.AlignmentFlag.AlignVCenter)
+        self.vision_label = QLabel("INITIALIZING FACE TRACKING")
+        self.vision_label.setObjectName("visionStatus")
+        top.addWidget(self.vision_label, alignment=Qt.AlignmentFlag.AlignVCenter)
         content_layout.addLayout(top)
 
         self.camera_view = QLabel("Starting your camera…")
@@ -200,6 +206,18 @@ class MainWindow(QMainWindow):
     def _show_fps(self, fps: float) -> None:
         self.fps_label.setText(f"{fps:.0f} FPS")
 
+    def _show_face_count(self, count: int) -> None:
+        if count == 0:
+            self.vision_label.setText("AUCUN VISAGE")
+        elif count == 1:
+            self.vision_label.setText("1 VISAGE DÉTECTÉ")
+        else:
+            self.vision_label.setText(f"{count} VISAGES DÉTECTÉS")
+
+    def _vision_failed(self, message: str) -> None:
+        self.vision_label.setText("SUIVI FACIAL INDISPONIBLE")
+        self.vision_label.setToolTip(message)
+
     def _toggle_camera(self) -> None:
         if self.camera.isRunning():
             self.camera.stop()
@@ -208,9 +226,11 @@ class MainWindow(QMainWindow):
             self.camera_view.clear()
             self.camera_view.setText("Caméra désactivée")
             self.status_label.setText("CAMÉRA EN PAUSE")
+            self.vision_label.setText("SUIVI EN PAUSE")
         else:
             self.camera_view.setText("Starting your camera…")
             self.status_label.setText("INITIALIZING CAMERA")
+            self.vision_label.setText("INITIALIZING FACE TRACKING")
             self.camera.start()
 
     def _capture_photo(self) -> None:
