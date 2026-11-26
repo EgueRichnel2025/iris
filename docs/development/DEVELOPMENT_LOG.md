@@ -711,3 +711,21 @@ Préparer une représentation en pixels utilisable par le rendu d'accessoires et
 ### En cours
 - Installation de MediaPipe 1.2.3 dans le venv desktop via uv pip ; l'installation télécharge les wheels lourds et reste en cours.
 - Le modèle est présent localement mais le chargement réel via MediaPipe et le test caméra restent à valider.
+
+
+## Session 2026-11-26 — Résolution du chemin du modèle
+
+### Réalisations
+- Création de desktop/iris/vision/model_assets.py pour localiser face_landmarker.task depuis le projet source et depuis le répertoire d'extraction PyInstaller.
+- Ajout de tests couvrant les deux contextes de lancement.
+
+### Fichiers créés
+- desktop/iris/vision/model_assets.py
+- desktop/tests/test_model_assets.py
+
+### Validations
+- desktop/.venv/bin/python -m pytest -q : 46 tests réussis.
+- compileall et git diff --check : réussis.
+
+### Commit
+- ff02bf3 — feat(vision): resolve local face model asset path.

@@ -123,3 +123,13 @@ La détection faciale MediaPipe n'est pas encore intégrée à la caméra : le p
 | 3 | Ajout de la provenance. | README dans le dossier models avec URL source, date et empreinte SHA-256. |
 | 4 | Commit de l'asset. | 7ddf5c9 — assets(vision): add MediaPipe face landmarker model. |
 | 5 | Installation de MediaPipe. | Toujours en cours via uv ; le runtime réel n'est pas encore validé. |
+
+
+### 2026-11-26 — Résolution du chemin du modèle
+
+| # | Action | Résultat |
+| --- | --- | --- |
+| 1 | Création de desktop/iris/vision/model_assets.py. | Résolution du modèle en mode source et depuis le dossier temporaire PyInstaller. |
+| 2 | Création de desktop/tests/test_model_assets.py. | Tests des chemins source et bundle. |
+| 3 | Validation. | 46 tests réussis ; compilation et git diff --check réussis. |
+| 4 | Commit. | ff02bf3 — feat(vision): resolve local face model asset path. |
