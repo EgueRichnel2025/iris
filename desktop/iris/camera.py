@@ -32,6 +32,7 @@ class CameraThread(QThread):
     """Read webcam frames and run face tracking away from the GUI thread."""
 
     image_ready = Signal(QImage)
+    video_frame_ready = Signal(object)
     raw_frame_ready = Signal(object)
     camera_ready = Signal(str)
     camera_error = Signal(str)
@@ -155,6 +156,7 @@ class CameraThread(QThread):
                 ).copy()
 
                 self.raw_frame_ready.emit(processed.copy())
+                self.video_frame_ready.emit(rgb.copy())
                 self.image_ready.emit(image)
 
                 frame_count += 1

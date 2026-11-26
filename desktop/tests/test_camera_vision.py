@@ -217,10 +217,15 @@ def test_camera_emits_face_transform_for_gui_thread(monkeypatch):
     )
     camera = CameraThread(vision_pipeline=pipeline, pose_estimator=FakePoseEstimator())
     transforms = []
+    video_frames = []
     camera.face_transform_updated.connect(transforms.append)
+    camera.video_frame_ready.connect(video_frames.append)
 
     camera.run()
 
     assert len(transforms) == 2
     np.testing.assert_array_equal(transforms[0], matrix)
     assert transforms[0] is not matrix
+    assert len(video_frames) == 2
+    assert video_frames[0].ndim == 3 and video_frames[0].shape[2] == 3
+    assert video_frames[0].dtype == np.uint8
