@@ -174,3 +174,27 @@ def test_camera_resets_pose_when_face_disappears(monkeypatch):
     assert pose_estimator.calls == []
     assert pipeline.closed
     assert capture.released
+def test_camera_applies_selected_accessory_to_each_detected_frame(monkeypatch):
+    capture = FakeCapture()
+    pipeline = FakeVisionPipeline()
+    applied = []
+    monkeypatch.setattr(camera_module.cv2, "VideoCapture", lambda *_args: capture)
+    monkeypatch.setattr(
+        camera_module.time, "monotonic_ns",
+        iter([1_000_000, 2_000_000]).__next__,
+    )
+    monkeypatch.setattr(
+        camera_module,
+        "apply_accessory",
+        lambda frame, accessory, faces: (
+            applied.append((accessory, len(faces))) or frame.copy()
+        ),
+    )
+
+    camera = CameraThread(vision_pipeline=pipeline, pose_estimator=FakePoseEstimator())
+    camera.set_accessory("glasses")
+    camera.run()
+
+    assert applied == [("glasses", 1), ("glasses", 1)]
+    assert pipeline.closed
+    assert capture.released
