@@ -7,12 +7,12 @@ import time
 from typing import Any
 
 import cv2
-import numpy as np
 from PySide6.QtCore import QThread, Signal
 from PySide6.QtGui import QImage
 
 from iris.effects import apply_effect
 from iris.vision.face_landmarker import FaceLandmarker
+from iris.vision.head_pose import HeadPoseEstimator
 from iris.vision.overlay import draw_landmarks
 from iris.vision.pipeline import FaceVisionPipeline
 
@@ -37,6 +37,7 @@ class CameraThread(QThread):
     camera_error = Signal(str)
     vision_error = Signal(str)
     face_count_updated = Signal(int)
+    head_pose_updated = Signal(float, float, float)
     fps_updated = Signal(float)
 
     def __init__(
@@ -44,12 +45,16 @@ class CameraThread(QThread):
         camera_index: int = 0,
         *,
         vision_pipeline: Any | None = None,
+        pose_estimator: Any | None = None,
     ) -> None:
         super().__init__()
         self.camera_index = camera_index
         self._running = False
         self._effect = "original"
         self._vision_pipeline = vision_pipeline
+        self._pose_estimator = (
+            pose_estimator if pose_estimator is not None else HeadPoseEstimator()
+        )
 
     def set_effect(self, effect: str) -> None:
         self._effect = effect
@@ -102,11 +107,30 @@ class CameraThread(QThread):
                         vision_result = vision_pipeline.process(frame, timestamp_ms)
                         frame = draw_landmarks(frame, vision_result.smoothed_faces)
                         self.face_count_updated.emit(vision_result.face_count)
+                        if vision_result.smoothed_faces:
+                            try:
+                                pose = self._pose_estimator.estimate(
+                                    vision_result.smoothed_faces[0],
+                                    frame.shape[1],
+                                    frame.shape[0],
+                                )
+                            except (ValueError, RuntimeError, cv2.error) as exc:
+                                self.vision_error.emit(
+                                    f"Estimation de pose indisponible : {exc}"
+                                )
+                                self.head_pose_updated.emit(0.0, 0.0, 0.0)
+                            else:
+                                self.head_pose_updated.emit(
+                                    pose.yaw, pose.pitch, pose.roll
+                                )
+                        else:
+                            self.head_pose_updated.emit(0.0, 0.0, 0.0)
                     except Exception as exc:
                         self.vision_error.emit(f"Erreur du suivi facial : {exc}")
                         vision_pipeline.close()
                         vision_pipeline = None
                         self.face_count_updated.emit(0)
+                        self.head_pose_updated.emit(0.0, 0.0, 0.0)
 
                 processed = apply_effect(frame, self._effect)
                 rgb = cv2.cvtColor(processed, cv2.COLOR_BGR2RGB)
