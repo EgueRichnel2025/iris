@@ -18,6 +18,7 @@ L'application de référence est la version native Python située dans `desktop/
 - [x] Définir une première composition détection + lissage dans un pipeline vision indépendant de l'UI.
 - [x] Ajouter le suivi temporel et le lissage EMA des landmarks ; mesurer la stabilité et les FPS sur le poste de développement.
 - [x] Prévoir la gestion du modèle (chargement, erreurs, fermeture propre et asset local intégré au bundle).
+- [x] Estimer la pose de tête (yaw, pitch, roll) depuis six landmarks stables et publier les angles en temps réel.
 
 ### P1 — Effets AR 2D
 - [ ] Ajouter des accessoires ancrés au visage (lunettes, chapeaux, oreilles, etc.).
@@ -183,3 +184,20 @@ La détection faciale MediaPipe n'est pas encore intégrée à la caméra : le p
 | 11 | Mise à jour du spec PyInstaller. | Collecte MediaPipe ciblée (ressources, bibliothèques dynamiques et imports Face Landmarker), exclusions de modules non utilisés. |
 
 État : le suivi facial est désormais intégré et validé en direct sur la webcam. La taille du bundle Linux reste à optimiser dans un environnement installé avec le wheel OpenCV du lockfile. Le build Windows reste à produire sur Windows.
+
+
+### 2026-11-26 — Estimation de la pose de tête
+
+| # | Action | Résultat |
+| --- | --- | --- |
+| 1 | Création de desktop/iris/vision/head_pose.py. | Estimateur HeadPoseEstimator basé sur six landmarks MediaPipe et cv2.solvePnP ; retourne yaw, pitch, roll et les vecteurs de pose. |
+| 2 | Création de desktop/tests/test_head_pose.py. | 18 tests couvrant les trois axes, rotations positives/négatives, rotations combinées, images miroir et entrées invalides. |
+| 3 | Alignement du modèle 3D avec les axes caméra OpenCV. | Correction d'une rotation de base proche de 180° observée sur le visage réel ; pose frontale ramenée autour de yaw 0°, pitch 4°, roll -7°. |
+| 4 | Intégration à CameraThread. | Nouveau signal head_pose_updated ; estimation sur landmarks lissés ; erreur de pose isolée de la détection ; angles remis à zéro en absence de visage. |
+| 5 | Intégration dans MainWindow. | Affichage séparé YAW / PITCH / ROLL ; la fenêtre ne calcule pas la pose. |
+| 6 | Tests complets. | 81 tests réussis ; compileall et git diff --check réussis. |
+| 7 | Smoke test de l'application réelle. | CAMÉRA ACTIVE, 1 VISAGE DÉTECTÉ, frame reçue, environ 17 FPS ; pose affichée : YAW -0°, PITCH +4°, ROLL -7°. |
+| 8 | Commits de code. | 3d948a4 — fix(vision): align head pose model with camera axes ; 3644023 — feat(camera): publish live head pose estimates ; b631430 — feat(ui): display live head orientation. |
+| 9 | Publication GitHub. | À confirmer après le push du jalon. |
+
+Note technique : les angles utilisent un modèle facial générique et une matrice intrinsèque approximative (focale estimée à partir de la largeur de l'image). C'est une estimation d'orientation pour stabiliser les accessoires, pas encore une mesure métrique calibrée de la caméra.

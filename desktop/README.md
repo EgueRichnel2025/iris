@@ -11,6 +11,7 @@ The active native application for real-time camera filters and facial effects.
 | Camera & computer vision | OpenCV | Webcam acquisition, frame conversion and image operations |
 | Image processing | NumPy, OpenCV | Array operations and visual effects |
 | Face analysis | MediaPipe Face Landmarker | 478 facial landmarks, VIDEO-mode tracking and temporal smoothing |
+| Head pose | OpenCV solvePnP | Yaw, pitch and roll from six stable facial landmarks |
 | Packaging | PyInstaller | Standalone application builds |
 | Testing | pytest | Automated desktop tests |
 | Dependency management | uv | Environment and dependency synchronisation |
@@ -26,6 +27,7 @@ The active native application for real-time camera filters and facial effects.
 - Real-time face detection with a 478-point facial landmark overlay.
 - Temporal EMA smoothing to reduce landmark jitter.
 - Face detection runs in the camera thread; the UI only displays its status.
+- Live head orientation estimate (yaw, pitch and roll) displayed separately from the camera status.
 
 ## Run from source
 

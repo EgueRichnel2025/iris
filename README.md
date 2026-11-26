@@ -29,6 +29,7 @@ The active product is the **native desktop application** in `desktop/`. It runs 
 | Camera controls and FPS display | Available |
 | Local photo capture | Available |
 | Face detection and 478-point landmark tracking | Available |
+| Head pose estimation — yaw, pitch and roll | Available |
 | Face accessories and AR overlays | Planned |
 | Mouth and face deformations | Planned |
 | Video recording | Planned |
@@ -114,6 +115,8 @@ MediaPipe Face Landmarker
   ▼
 478 landmarks + EMA smoothing
   │
+  ├── Head pose (yaw / pitch / roll)
+  │
   ▼
 Landmark overlay
   │
@@ -124,7 +127,7 @@ PySide6 desktop interface
   └── Local photo capture
 ```
 
-The camera and face-analysis pipeline run in a dedicated thread so that frame acquisition and inference do not block the interface. MediaPipe detects and tracks 478 facial landmarks per face; an EMA smoother stabilizes them before they are drawn on the preview. MainWindow receives only the rendered frame and face-count status. All processing stays local.
+The camera and face-analysis pipeline run in a dedicated thread so that frame acquisition and inference do not block the interface. MediaPipe detects and tracks 478 facial landmarks per face; an EMA smoother stabilizes them before they are drawn on the preview. OpenCV solvePnP estimates yaw, pitch and roll from six stable facial landmarks using an approximate camera matrix. MainWindow receives the rendered frame, face-count status and pose angles; it does not perform vision calculations. All processing stays local.
 
 ## Getting started
 
@@ -191,11 +194,10 @@ iris/
 ## Roadmap
 
 1. Strengthen the desktop camera and rendering foundation.
-2. Estimate head pose (yaw, pitch and roll) from facial landmarks.
-3. Add face accessories and AR overlays, stabilized by head pose.
-4. Implement mesh-based mouth and face deformations.
-5. Add expression-driven effects and video capture.
-6. Improve performance and cross-platform distribution.
+2. Add face accessories and AR overlays, stabilized by head pose.
+3. Implement mesh-based mouth and face deformations.
+4. Add expression-driven effects and video capture.
+5. Improve performance and cross-platform distribution.
 
 ## Documentation
 

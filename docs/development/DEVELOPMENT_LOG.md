@@ -834,3 +834,53 @@ Installer et valider le runtime MediaPipe réel, puis connecter le Face Landmark
 
 ### État final de la session
 Le pipeline de détection faciale est fonctionnel en direct avec la webcam et le rendu de landmarks est visible dans l'aperçu. MainWindow ne fait que présenter les résultats. La suite logique est l'exploitation des landmarks pour les accessoires AR et la pose de tête, puis les déformations faciales. La réduction du bundle Linux reste une tâche de packaging distincte.
+
+
+## Session 2026-11-26 — Estimation de la pose de tête
+
+### Objectif
+Exploiter les landmarks déjà suivis pour estimer l'orientation de la tête sur les trois axes, puis exposer les résultats à l'interface pour préparer les accessoires AR.
+
+### Réalisations
+- Création de desktop/iris/vision/head_pose.py avec HeadPoseEstimator et HeadPose.
+- Utilisation de six points de référence stables (IDs MediaPipe 1, 152, 33, 263, 61 et 291 : nez, menton, coins externes des yeux et de la bouche).
+- Estimation 3D par cv2.solvePnP en mode ITERATIVE, conversion du vecteur de rotation par cv2.Rodrigues, puis extraction des angles yaw, pitch et roll.
+- Retour des vecteurs de rotation et de translation pour les futurs besoins de pose/placement 3D.
+- Alignement du modèle 3D sur les axes caméra OpenCV (X droite, Y bas, Z vers l'avant). Le premier essai utilisait un repère visage différent et renvoyait une rotation de base proche de 180 degrés ; la correction donne une pose frontale cohérente.
+- Ajout d'un paramètre explicite mirrored_input pour les appels dont les coordonnées proviennent d'une image horizontalement inversée.
+- Intégration de l'estimateur dans CameraThread. La pose est calculée à partir des landmarks déjà lissés ; les angles sont transmis via head_pose_updated. Une erreur ponctuelle de solvePnP ne coupe plus la détection faciale.
+- Si aucun visage n'est présent, les angles sont réinitialisés à zéro.
+- MainWindow affiche séparément YAW, PITCH et ROLL, en conservant les responsabilités UI/vision distinctes.
+
+### Fichiers créés ou modifiés
+- desktop/iris/vision/head_pose.py
+- desktop/tests/test_head_pose.py
+- desktop/iris/camera.py
+- desktop/iris/main_window.py
+- desktop/tests/test_camera_vision.py
+- README.md
+- desktop/README.md
+- BACKLOG.md
+
+### Validations
+| Vérification | Résultat |
+| --- | --- |
+| Tests dédiés pose + caméra | 22 tests passés après ajout du cas « visage perdu ». |
+| Suite complète desktop | 81 tests réussis. |
+| compileall iris tests | Réussi. |
+| git diff --check | Réussi. |
+| Tests synthétiques yaw/pitch/roll | Rotations positives, négatives et combinées récupérées à 0,2° près. |
+| Tests de coordonnées miroir | 8 configurations validées. |
+| Smoke test GUI réel 6 s | CAMÉRA ACTIVE ; 1 VISAGE DÉTECTÉ ; frame reçue ; environ 17 FPS ; pose affichée YAW -0°, PITCH +4°, ROLL -7°. |
+
+### Limites et précision
+La pose utilise un modèle facial générique à six points et une matrice caméra approximative : focale estimée par la largeur de l'image, centre optique au centre de l'image, distorsion nulle. Les angles donnent une orientation utile pour l'ancrage des accessoires, mais la translation et les distances 3D ne doivent pas encore être considérées comme métriquement calibrées. Une calibration réelle de la webcam pourra améliorer la précision.
+
+### Commits de code
+- b4c8607 — feat(vision): estimate head pose from facial landmarks.
+- 3d948a4 — fix(vision): align head pose model with camera axes.
+- 3644023 — feat(camera): publish live head pose estimates.
+- b631430 — feat(ui): display live head orientation.
+
+### Prochaine étape
+Ajouter un premier accessoire 2D (lunettes) ancré sur les landmarks des yeux, puis stabiliser sa position, son échelle et sa rotation à partir de la pose de tête. Les déformations de bouche et de visage viendront après ce socle AR.
