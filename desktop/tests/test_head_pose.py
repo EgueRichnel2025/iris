@@ -8,11 +8,11 @@ from iris.vision.head_pose import HeadPoseEstimator
 MODEL_POINTS = np.array(
     [
         (0.0, 0.0, 0.0),
-        (0.0, -330.0, -65.0),
-        (-225.0, 170.0, -135.0),
-        (225.0, 170.0, -135.0),
-        (-150.0, -150.0, -125.0),
-        (150.0, -150.0, -125.0),
+        (0.0, 330.0, 65.0),
+        (-225.0, -170.0, 135.0),
+        (225.0, -170.0, 135.0),
+        (-150.0, 150.0, 125.0),
+        (150.0, 150.0, 125.0),
     ],
     dtype=np.float64,
 )
@@ -100,3 +100,30 @@ def test_rejects_invalid_landmark_shapes_and_non_finite_values():
     points[1, 0] = np.nan
     with pytest.raises(ValueError, match="finite"):
         estimator.estimate(points, WIDTH, HEIGHT)
+
+
+
+@pytest.mark.parametrize(
+    "expected",
+    [
+        (0.0, 0.0, 0.0),
+        (20.0, 0.0, 0.0),
+        (-20.0, 0.0, 0.0),
+        (0.0, 15.0, 0.0),
+        (0.0, -15.0, 0.0),
+        (0.0, 0.0, 12.0),
+        (0.0, 0.0, -12.0),
+        (10.0, -6.0, 4.0),
+    ],
+)
+def test_estimates_pose_from_horizontally_mirrored_landmarks(expected):
+    landmarks = make_landmarks(*expected)
+    landmarks[:, 0] = 1.0 - landmarks[:, 0]
+
+    pose = HeadPoseEstimator().estimate(
+        landmarks, WIDTH, HEIGHT, mirrored_input=True
+    )
+
+    np.testing.assert_allclose(
+        [pose.yaw, pose.pitch, pose.roll], expected, atol=0.2
+    )

@@ -11,16 +11,17 @@ from numpy.typing import NDArray
 # Stable Face Mesh landmark IDs used by the classic six-point PnP model.
 _POSE_LANDMARK_IDS = (1, 152, 33, 263, 61, 291)
 
-# Approximate 3D face reference points in millimetres. The coordinate system
-# is centred at the nose; only relative geometry is important for orientation.
+# Approximate 3D face reference points in millimetres. The coordinate
+# system is centred at the nose and aligned with OpenCV camera axes: X right,
+# Y down and Z forward. Only relative geometry is used for orientation.
 _FACE_MODEL_POINTS = np.array(
     [
         (0.0, 0.0, 0.0),          # Nose tip
-        (0.0, -330.0, -65.0),     # Chin
-        (-225.0, 170.0, -135.0),  # Outer eye corner A
-        (225.0, 170.0, -135.0),   # Outer eye corner B
-        (-150.0, -150.0, -125.0), # Mouth corner A
-        (150.0, -150.0, -125.0),  # Mouth corner B
+        (0.0, 330.0, 65.0),       # Chin
+        (-225.0, -170.0, 135.0),  # Outer eye corner A
+        (225.0, -170.0, 135.0),   # Outer eye corner B
+        (-150.0, 150.0, 125.0),  # Mouth corner A
+        (150.0, 150.0, 125.0),   # Mouth corner B
     ],
     dtype=np.float64,
 )
@@ -47,12 +48,15 @@ class HeadPoseEstimator:
         landmarks: NDArray[np.floating],
         image_width: int,
         image_height: int,
+        *,
+        mirrored_input: bool = False,
     ) -> HeadPose:
         """Estimate head orientation from normalized MediaPipe landmarks.
 
         The camera intrinsics use a focal-length approximation based on the
-        image width and a principal point at the image centre. A calibrated
-        camera matrix can be added later for more accurate metric pose.
+        image width and a principal point at the image centre. Set
+        mirrored_input=True when the supplied landmarks come from an
+        horizontally flipped image. Camera calibration can improve metric pose.
         """
         if image_width <= 0 or image_height <= 0:
             raise ValueError("image dimensions must be positive")
@@ -65,8 +69,11 @@ class HeadPoseEstimator:
         if not np.isfinite(points).all():
             raise ValueError("landmarks must contain only finite coordinates")
 
+        normalized_points = points[list(self.landmark_ids), :2].copy()
+        if mirrored_input:
+            normalized_points[:, 0] = 1.0 - normalized_points[:, 0]
         image_points = np.ascontiguousarray(
-            points[list(self.landmark_ids), :2]
+            normalized_points
             * np.array((image_width, image_height), dtype=np.float64),
             dtype=np.float64,
         )
