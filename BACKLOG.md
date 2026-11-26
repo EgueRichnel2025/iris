@@ -101,3 +101,13 @@ La détection faciale MediaPipe n'est pas encore intégrée à la caméra : le p
 | 6 | Commit de l'adaptateur et de ses tests. | 93d656b — feat(vision): add MediaPipe face landmarker adapter. |
 | 7 | Téléchargement du modèle et installation MediaPipe. | En cours ; téléchargement lent observé. L'intégration réelle à la caméra n'est pas encore déclarée terminée. |
 
+
+
+### 2026-11-26 — Conversion des coordonnées faciales
+
+| # | Action | Résultat |
+| --- | --- | --- |
+| 1 | Création de desktop/iris/vision/coordinates.py. | Conversion des coordonnées normalisées en pixels pour les points 2D/3D, avec validation des dimensions et des valeurs. |
+| 2 | Création de desktop/tests/test_coordinates.py. | 11 assertions/cas couvrant les conversions, les entrées invalides et la non-modification des données source. |
+| 3 | Tests et compilation. | 44 tests réussis ; compileall et git diff --check réussis. |
+| 4 | Commit. | 487315e — feat(vision): convert normalized landmarks to pixels. |

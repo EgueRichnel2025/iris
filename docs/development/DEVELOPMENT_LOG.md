@@ -674,3 +674,25 @@ Créer une première frontière logicielle propre entre le pipeline IRIS et Medi
 - Le modèle face_landmarker.task est en cours de téléchargement dans desktop/assets/models/.
 - L'installation de MediaPipe 1.2.3 est prévue juste après ce téléchargement ; elle n'est pas encore confirmée.
 - L'adaptateur n'est pas encore relié à CameraThread ; cette intégration attend le test du runtime et du modèle réels.
+
+
+## Session 2026-11-26 — Conversion des coordonnées faciales
+
+### Objectif
+Préparer une représentation en pixels utilisable par le rendu d'accessoires et le futur moteur de déformation, sans mélanger les coordonnées normalisées du modèle avec les dimensions de l'image.
+
+### Réalisations
+- Création de desktop/iris/vision/coordinates.py avec normalized_to_pixels pour les tableaux de coordonnées 2D et 3D.
+- Mise à l'échelle de X et Z par la largeur de l'image, et de Y par sa hauteur, conformément à la convention des coordonnées normalisées MediaPipe.
+- Validation des dimensions positives, de la forme des tableaux et des valeurs finies ; l'entrée n'est pas modifiée.
+
+### Fichiers créés
+- desktop/iris/vision/coordinates.py
+- desktop/tests/test_coordinates.py
+
+### Validations
+- desktop/.venv/bin/python -m pytest -q : 44 tests réussis.
+- compileall et git diff --check : réussis.
+
+### Commit
+- 487315e — feat(vision): convert normalized landmarks to pixels.
