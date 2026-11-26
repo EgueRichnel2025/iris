@@ -230,3 +230,17 @@ Note technique : les angles utilisent un modèle facial générique et une matri
 | 6 | Publication GitHub. | À confirmer après le push des commits. |
 
 À faire ensuite : validation visuelle webcam avec visage présent, ajustement des proportions/style sur différents yaw/roll, puis amélioration de l'occlusion et des branches.
+
+
+### 2026-11-26 — Préparation du moteur d'accessoires 3D
+
+| # | Action | Résultat |
+| --- | --- | --- |
+| 1 | Étude du pipeline MediaPipe et des dépendances de rendu présentes. | Face Landmarker ne renvoyait jusqu'ici que les landmarks ; VTK 9.5.2 est présent dans l'environnement système, mais pas déclaré comme dépendance projet. |
+| 2 | Sélection d'un modèle de lunettes 3D. | Modèle GLB rectangulaire de 223 Ko provenant de la bibliothèque Innerscene, dédié sous CC0 1.0 ; licence et SHA-256 consignés à côté de l'asset. |
+| 3 | Ajout de la sortie matrice faciale. | `FaceLandmarker` demande maintenant `output_facial_transformation_matrixes=True` et expose les matrices 4×4 dans `FaceLandmarkResult`. |
+| 4 | Tests et validation. | **102 tests réussis**, compilation Python et `git diff --check` réussis. |
+| 5 | Essai de rendu GLB via VTK. | `vtkGLTFImporter` signale `Error loading binary data` pour cet asset ; cette voie n'est pas validée et n'est pas intégrée. |
+| 6 | Publication des changements de code et de l'asset. | Commits `ed8cadf`, `87389b6`, `24754d5` ; push à effectuer/contrôler. |
+
+**Important :** le modèle 3D est maintenant présent dans le dépôt et MediaPipe expose la transformation faciale, mais l'accessoire 3D n'est pas encore affiché dans la caméra. L'ancien rendu 2D polygonal reste le rendu sélectionnable tant que le moteur 3D n'est pas prêt. Prochaine tâche bloquante : choisir et valider un renderer glTF/GLB compatible PySide6 et le pipeline caméra, puis aligner le modèle (échelle, axes, pivot) sur la matrice faciale et vérifier l'occlusion.

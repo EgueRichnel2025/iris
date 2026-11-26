@@ -957,3 +957,43 @@ Améliorer le rendu des lunettes pour qu'il épouse mieux les contours oculaires
 
 ### Suite
 Effectuer un contrôle visuel webcam avec un visage présent, mesurer les résultats sur plusieurs angles de tête, puis travailler l'occlusion et les branches des lunettes.
+
+
+## Session 2026-11-26 — Préparation du moteur d'accessoires 3D
+
+### Objectif
+Remplacer à terme le dessin OpenCV des lunettes par un vrai asset 3D, aligné sur la transformation faciale MediaPipe.
+
+### Asset 3D sélectionné
+- Modèle : `desktop/assets/models/accessories/rectangular-acetate-glasses.glb` (GLB 2.0, environ 223 Ko).
+- Source : Innerscene 3D Parts Library, page `https://www.innerscene.com/tools/library/3d-parts/rectangular-acetate-glasses-a635b3cb`.
+- Licence déclarée dans les métadonnées GLB et sur la page source : CC0 1.0 Universal.
+- Le modèle comporte des sous-maillages séparés pour monture acétate, monture métal, plaquettes nasales, verres et branches.
+- SHA-256 : `d31285108a295bbbe381cdaff60d0b9aa318c4d052f6a7fd6e06ad8ec102d16a`.
+- Provenance, licence et statut d'intégration consignés dans `desktop/assets/models/accessories/README.md`.
+
+### Évolution MediaPipe
+- `FaceLandmarkerOptions` active `output_facial_transformation_matrixes=True`.
+- `FaceLandmarkResult` expose `facial_transformation_matrices`, tuple de matrices 4×4 `float32` renvoyées par MediaPipe.
+- Cette donnée complète les landmarks et doit servir à positionner l'objet 3D dans le repère facial.
+
+### Fichiers créés/modifiés
+- `desktop/assets/models/accessories/rectangular-acetate-glasses.glb` (nouveau modèle).
+- `desktop/assets/models/accessories/README.md` (provenance/licence/hash).
+- `desktop/iris/vision/face_landmarker.py` (sortie matrice faciale).
+- `desktop/tests/test_face_landmarker.py` (test de la sortie matrice).
+
+### Validation
+- `pytest -q` : **102 tests réussis**.
+- `compileall iris tests` : réussi.
+- `git diff --check` : réussi.
+- Inspection de l'en-tête GLB : version 2.0, chunks JSON/BIN cohérents, 5 meshes, 4 matériaux, sous-maillages nommés.
+- Essai exploratoire `vtkGLTFImporter` : échec de chargement des données binaires (`Error loading binary data`), donc VTK n'est pas retenu comme renderer à ce stade.
+
+### Commits
+- `ed8cadf` — `feat(ar): add CC0 3D glasses model asset`.
+- `87389b6` — `feat(vision): expose facial transformation matrices`.
+- `24754d5` — `test(vision): cover facial transform matrix output`.
+
+### Limitation et prochaine étape
+Aucun rendu 3D n'est encore branché à `CameraThread`. Le GLB est acquis et la matrice faciale est disponible, mais il faut encore sélectionner et valider un moteur de rendu glTF/GLB compatible avec l'architecture PySide6 et le flux caméra. Il faudra ensuite calibrer le repère local du modèle (échelle, axes, pivot) et gérer l'occlusion du visage. Ne pas annoncer l'accessoire 3D comme fonctionnel avant validation visuelle sur webcam.
