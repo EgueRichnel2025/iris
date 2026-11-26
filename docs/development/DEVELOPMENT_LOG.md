@@ -766,3 +766,20 @@ Assembler la détection et le lissage temporel dans une couche vision dédiée, 
 
 ### Commit
 - 968062a — feat(vision): use bundled face model by default.
+
+
+## Session 2026-11-26 — Préparation du packaging MediaPipe
+
+### Réalisations
+- Mise à jour de desktop/IRIS.spec pour collecter les ressources, binaires et imports dynamiques de cv2 et mediapipe.
+- Ajout du modèle local face_landmarker.task dans les données du bundle.
+- Les scripts build.sh et build.ps1 utilisent désormais le spec commun au lieu de dupliquer les options PyInstaller.
+
+### Validations
+- bash -n desktop/build.sh : réussi.
+- Compilation syntaxique de desktop/IRIS.spec : réussie.
+- Suite desktop : 52 tests réussis.
+- Le build PyInstaller réel n'a pas été exécuté, car l'installation MediaPipe est encore en cours.
+
+### Commit
+- 4f9b8d6 — build(desktop): bundle face model and MediaPipe runtime.

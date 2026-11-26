@@ -153,3 +153,14 @@ La détection faciale MediaPipe n'est pas encore intégrée à la caméra : le p
 | 2 | Test du chemin par défaut. | Cas ajouté à la suite dédiée Face Landmarker. |
 | 3 | Validation. | 52 tests réussis ; compilation réussie. |
 | 4 | Commit. | 968062a — feat(vision): use bundled face model by default. |
+
+
+### 2026-11-26 — Préparation du packaging MediaPipe
+
+| # | Action | Résultat |
+| --- | --- | --- |
+| 1 | Mise à jour de desktop/IRIS.spec. | Inclusion du runtime MediaPipe, de ses ressources et du modèle face_landmarker.task. |
+| 2 | Simplification de desktop/build.sh et desktop/build.ps1. | Les deux scripts appellent désormais le spec commun. |
+| 3 | Validation statique. | bash -n build.sh et compilation syntaxique IRIS.spec réussis ; 52 tests réussis. |
+| 4 | Commit. | 4f9b8d6 — build(desktop): bundle face model and MediaPipe runtime. |
+| 5 | Packaging réel. | Non exécuté : attente de l'installation du runtime MediaPipe dans le venv. |
