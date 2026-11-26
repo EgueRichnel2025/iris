@@ -13,7 +13,8 @@ L'application de référence est la version native Python située dans `desktop/
 - [x] Implémenter un utilitaire de lissage temporel EMA indépendant et le couvrir par des tests unitaires.
 - [ ] Intégrer MediaPipe Face Landmarker dans le pipeline de frames de l'application desktop.
   - [x] Créer l'adaptateur Python isolé : chargement explicite, mode VIDEO, validation des frames, extraction des landmarks et fermeture propre.
-  - [ ] Télécharger et valider le modèle local, puis tester le runtime MediaPipe réel.
+  - [x] Télécharger le modèle local officiel et vérifier son SHA-256.
+  - [ ] Installer et tester le runtime MediaPipe réel.
 - [ ] Définir les modules de détection, landmarks, tracking et pose avec des responsabilités distinctes.
 - [ ] Ajouter le suivi temporel et le lissage des landmarks ; mesurer la stabilité et les FPS.
 - [ ] Prévoir la gestion du modèle (chargement, erreurs, fermeture propre et stratégie d'assets locaux).
@@ -111,3 +112,14 @@ La détection faciale MediaPipe n'est pas encore intégrée à la caméra : le p
 | 2 | Création de desktop/tests/test_coordinates.py. | 11 assertions/cas couvrant les conversions, les entrées invalides et la non-modification des données source. |
 | 3 | Tests et compilation. | 44 tests réussis ; compileall et git diff --check réussis. |
 | 4 | Commit. | 487315e — feat(vision): convert normalized landmarks to pixels. |
+
+
+### 2026-11-26 — Ajout de l'asset Face Landmarker
+
+| # | Action | Résultat |
+| --- | --- | --- |
+| 1 | Téléchargement du modèle Face Landmarker officiel. | Fichier desktop/assets/models/face_landmarker.task téléchargé (3,58 Mio). |
+| 2 | Vérification de l'intégrité. | SHA-256 vérifié : 64184e229b263107bc2b804c6625db1341ff2bb731874b0bcc2fe6544e0bc9ff. |
+| 3 | Ajout de la provenance. | README dans le dossier models avec URL source, date et empreinte SHA-256. |
+| 4 | Commit de l'asset. | 7ddf5c9 — assets(vision): add MediaPipe face landmarker model. |
+| 5 | Installation de MediaPipe. | Toujours en cours via uv ; le runtime réel n'est pas encore validé. |

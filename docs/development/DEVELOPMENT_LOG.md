@@ -696,3 +696,18 @@ Préparer une représentation en pixels utilisable par le rendu d'accessoires et
 
 ### Commit
 - 487315e — feat(vision): convert normalized landmarks to pixels.
+
+
+## Session 2026-11-26 — Ajout de l'asset Face Landmarker
+
+### Réalisations
+- Téléchargement du modèle officiel Google MediaPipe Face Landmarker dans desktop/assets/models/face_landmarker.task.
+- Vérification du fichier (3,58 Mio) et de son empreinte SHA-256 : 64184e229b263107bc2b804c6625db1341ff2bb731874b0bcc2fe6544e0bc9ff.
+- Ajout de desktop/assets/models/README.md pour conserver la provenance, l'URL source, la date de récupération et l'empreinte.
+
+### Commit
+- 7ddf5c9 — assets(vision): add MediaPipe face landmarker model.
+
+### En cours
+- Installation de MediaPipe 1.2.3 dans le venv desktop via uv pip ; l'installation télécharge les wheels lourds et reste en cours.
+- Le modèle est présent localement mais le chargement réel via MediaPipe et le test caméra restent à valider.
