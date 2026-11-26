@@ -25,6 +25,15 @@ L'application de référence est la version native Python située dans `desktop/
 - [x] Exploiter les landmarks lissés pour stabiliser la position, l’échelle et la rotation des lunettes ; validation visuelle prolongée en mouvement encore à effectuer.
 - [ ] Prévoir une sélection et un aperçu des effets.
 
+### P1 — Rendu 3D des accessoires
+- [x] Évaluer un moteur de rendu GLB compatible avec Qt sans intégrer le backend VTK instable.
+- [x] Charger et afficher le modèle GLB avec Qt Quick 3D `RuntimeLoader`.
+- [x] Vérifier un compositing statique image caméra + modèle 3D dans `QQuickWidget`.
+- [ ] Déclarer les dépendances Qt Quick 3D dans l'extra desktop et préparer le packaging.
+- [ ] Remplacer l'aperçu QLabel par le rendu composite dans l'application.
+- [ ] Connecter le flux vidéo temps réel et la matrice MediaPipe au modèle.
+- [ ] Calibrer projection, axes, pivot et échelle sur un visage réel ; valider en mouvement.
+
 ### P2 — Déformations faciales
 - [ ] Construire un maillage facial exploitable pour le warping.
 - [ ] Implémenter les déformations de bouche sur une région complète, pas sur un seul landmark.
@@ -304,3 +313,21 @@ Note technique : les angles utilisent un modèle facial générique et une matri
 **Décision technique :** ne pas connecter QVTK à `MainWindow` et ne pas contourner le segmentation fault. Deux pistes à comparer avec un prototype minimal avant choix : (a) Qt Quick 3D avec le module PySide6 Addons, qui sait charger glTF/GLB ; (b) un renderer OpenGL dédié dans `QOpenGLWidget` avec un parseur glTF Python. Le critère est un rendu GLB stable dans la fenêtre Qt, pas seulement un import de fichier.
 
 **État honnête :** la caméra et la matrice faciale sont disponibles ; le modèle GLB est présent ; aucun rendu 3D composité sur la webcam n'est encore validé. Aucun commit fonctionnel ni push n'est revendiqué pour cette session de diagnostic.
+
+
+### 2026-11-26 — Prototype Qt Quick 3D et compositing statique
+
+| # | Action | Résultat |
+| --- | --- | --- |
+| 1 | Relecture du backlog, du journal, du statut Git et des modules actifs. | `main` propre et synchronisée avec `origin/main`, HEAD `c2b5fc0`. Aucun code applicatif modifié au début de cette étape. |
+| 2 | Vérification des bindings PySide6 Quick/QML/Quick3D. | Absents de l'installation Essentials seule. Téléchargement et extraction temporaires des paquets Ubuntu Qt 6.10.2 dans `/tmp/iris-qtquick3d` ; aucune installation système ni modification des dépendances du projet. |
+| 3 | Résolution des dépendances runtime Qt Quick 3D. | Modules PySide6 QtQuick, QtQml, QtQuick3D et QtQuickWidgets importables dans le venv après copie locale temporaire. Le plugin `qt6-quick3d-assetimporters-plugin` et `libassimp6` sont nécessaires pour l'import glTF. |
+| 4 | Prototype autonome `QQuickView` + `RuntimeLoader`. | `rectangular-acetate-glasses.glb` chargé avec statut `RuntimeLoader.Success`; capture `/tmp/iris-qtquick3d/glasses-preview.png` obtenue. La monture rectangulaire et ses branches sont visibles. |
+| 5 | Prototype `QQuickWidget` avec image caméra en arrière-plan et scène 3D transparente au premier plan. | Capture composite 1280×720 réussie dans `/tmp/iris-qtquick3d/composite-preview.png`. Le modèle 3D est rendu par-dessus l'image. Il s'agit d'une image caméra fixe de test, pas encore du flux vidéo continu. |
+| 6 | Test du Face Landmarker sur l'image de la webcam. | 0 visage détecté : la caméra était orientée vers le plafond. Aucune validation de l'ancrage ou de l'alignement sur visage réel n'est donc revendiquée. |
+| 7 | Validation du dépôt. | Les prototypes sont entièrement sous `/tmp`; aucun fichier source applicatif, dépendance ou lockfile n'a été modifié. Le statut Git est resté propre avant cette mise à jour documentaire. |
+
+### Décision et limites
+Qt Quick 3D est retenu comme piste de rendu à poursuivre : `RuntimeLoader` accepte glTF 2.0 `.glb` et la scène peut être composée dans un `QQuickWidget`, sans passer par le backend VTK qui segfaultait. Référence API : https://doc.qt.io/qt-6.10/qml-qtquick3d-assetutils-runtimeloader.html.
+
+Il reste à déclarer proprement `PySide6-Addons`/Qt Quick 3D dans l'extra de packaging, intégrer le widget à `MainWindow`, transmettre les frames RGB et convertir la matrice MediaPipe en position/rotation/échelle Qt Quick 3D. La caméra doit être orientée vers un visage pour valider le placement. Ne pas présenter le compositing statique comme un filtre AR temps réel terminé.
