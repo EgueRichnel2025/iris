@@ -53,7 +53,10 @@ L'application de référence est la version native Python située dans `desktop/
 | 8 | Tests avec l'environnement desktop déjà installé : `.venv/bin/python -m pytest -q`. | **9 tests réussis**. |
 | 9 | Tentative de `uv run --directory desktop pytest -q`. | `uv` a commencé une synchronisation/téléchargement de grosses dépendances ; le test a été validé via le venv existant pour éviter de dépendre de cette synchronisation. |
 | 10 | Création de `BACKLOG.md` et ajout de cette session au journal de développement. | Fichier de suivi créé ; journal permanent complété. |
-| 11 | Commit des README, commit de suivi puis push vers `origin/main`. | À renseigner après exécution et vérification des retours Git. |
+| 11 | Commit des README. | `9030c88` — `docs(readme): reorganize desktop stack documentation`. |
+| 12 | Commit du backlog et du journal. | `15edd15` — `docs(development): add project backlog and session log`. |
+| 13 | Push des deux commits vers `origin/main`. | Réussi : `d289df8..15edd15 main -> main`. |
+| 14 | Vérification finale du dépôt distant et de l’arbre de travail. | À confirmer après la dernière vérification Git. |
 
 ## Règles de mise à jour
 

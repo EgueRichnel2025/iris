@@ -590,7 +590,14 @@ Clarifier la présentation GitHub de l'application desktop, séparer les stacks 
 La commande uv run --directory desktop pytest -q a été tentée, mais uv a commencé à télécharger plusieurs wheels volumineux pendant sa synchronisation. La suite a donc été exécutée avec l'interpréteur de l'environnement desktop existant ; le résultat final est vert.
 
 ### Commits et publication
-Les README seront commités séparément du backlog et du journal afin de garder une trace documentaire explicite. Les hashes et le statut du push seront ajoutés après confirmation des commandes Git.
+Deux commits atomiques ont été créés et poussés avec succès vers origin/main :
+
+| Commit | Message | Publication |
+| --- | --- | --- |
+| `9030c88` | `docs(readme): reorganize desktop stack documentation` | Push confirmé sur origin/main. |
+| `15edd15` | `docs(development): add project backlog and session log` | Push confirmé sur origin/main. |
+
+Le push a confirmé la mise à jour de `d289df8` vers `15edd15` sur `main`. Une dernière mise à jour du backlog consignera la vérification finale.
 
 ### Suite
 - Publier les changements documentaires sur origin/main.
