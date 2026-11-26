@@ -752,3 +752,17 @@ Assembler la détection et le lissage temporel dans une couche vision dédiée, 
 
 ### Commit
 - 3bf99b9 — feat(vision): compose face detection and landmark smoothing.
+
+
+## Session 2026-11-26 — Modèle local par défaut
+
+### Réalisations
+- FaceLandmarker accepte désormais l'absence de model_path et utilise le chemin déterminé par face_landmarker_model_path().
+- Ajout d'un test garantissant que l'adaptateur pointe vers le modèle local par défaut.
+
+### Validation
+- desktop/.venv/bin/python -m pytest -q : 52 tests réussis.
+- compileall et git diff --check : réussis.
+
+### Commit
+- 968062a — feat(vision): use bundled face model by default.

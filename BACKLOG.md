@@ -143,3 +143,13 @@ La détection faciale MediaPipe n'est pas encore intégrée à la caméra : le p
 | 2 | Création de desktop/tests/test_vision_pipeline.py. | Tests du cycle de vie, du lissage, de la perte/réacquisition et des paramètres. |
 | 3 | Validation. | 51 tests réussis ; compilation et git diff --check réussis. |
 | 4 | Commit. | 3bf99b9 — feat(vision): compose face detection and landmark smoothing. |
+
+
+### 2026-11-26 — Modèle local par défaut
+
+| # | Action | Résultat |
+| --- | --- | --- |
+| 1 | Connexion de FaceLandmarker au résolveur d'asset. | Le constructeur peut maintenant être utilisé sans chemin explicite et charge le modèle local IRIS par défaut. |
+| 2 | Test du chemin par défaut. | Cas ajouté à la suite dédiée Face Landmarker. |
+| 3 | Validation. | 52 tests réussis ; compilation réussie. |
+| 4 | Commit. | 968062a — feat(vision): use bundled face model by default. |
