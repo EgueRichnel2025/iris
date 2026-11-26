@@ -603,3 +603,43 @@ Le push a confirmé la mise à jour de `d289df8` vers `15edd15` sur `main`. Une 
 - Publier les changements documentaires sur origin/main.
 - Poursuivre l'intégration de MediaPipe Face Landmarker au pipeline desktop.
 - Tenir BACKLOG.md et ce journal à jour à chaque session.
+
+---
+
+## Session 2026-11-26 — Première brique de stabilisation des landmarks
+
+### Objectif
+Commencer le chantier P0 du suivi facial par une brique mathématique indépendante de MediaPipe et de l'interface : le lissage temporel des coordonnées de landmarks.
+
+### Diagnostic
+- Branche `main` synchronisée avec `origin/main` au début de la session.
+- Environnement desktop actif : Python 3.14.4, NumPy et OpenCV présents.
+- MediaPipe 1.2.3 est déclaré dans `pyproject.toml` et verrouillé dans `uv.lock`, avec une roue Linux x86_64 disponible, mais il n'est pas installé dans l'environnement actuellement utilisé.
+- Aucun modèle Face Landmarker `.task` n'est encore présent dans le dépôt.
+- Une tentative de `uv sync --extra dev` a commencé à télécharger plusieurs grosses dépendances (NumPy, OpenCV, MediaPipe, PySide6, etc.) ; elle a été interrompue avant la fin pour ne pas bloquer la session. Aucun résultat d'installation n'a été revendiqué.
+
+### Réalisations
+- Création du package `desktop/iris/vision/`.
+- Ajout de `LandmarkSmoother` dans `desktop/iris/vision/smoothing.py`.
+- Lissage par moyenne mobile exponentielle : alpha proche de 1 = plus réactif ; alpha proche de 0 = plus lissé mais plus de latence.
+- Validation des valeurs alpha et des tableaux de coordonnées 2D/3D.
+- Réinitialisation automatique lorsque la forme des landmarks change et méthode `reset()` en cas de perte du visage.
+- Ajout de tests unitaires dédiés couvrant les limites alpha, le calcul EMA, reset, changement de forme, entrées invalides et coordonnées non finies.
+
+### Fichiers créés
+- `desktop/iris/vision/__init__.py`
+- `desktop/iris/vision/smoothing.py`
+- `desktop/tests/test_smoothing.py`
+
+### Validations
+| Commande | Résultat |
+| --- | --- |
+| `.venv/bin/python -m pytest -q` depuis `desktop/` | **21 tests réussis** en 0,37 s. |
+| `.venv/bin/python -m compileall -q iris tests` | Réussie. |
+| `git diff --check` | Réussie. |
+
+### État d'intégration
+Le lisseur est une brique testée mais il n'est pas encore branché au pipeline caméra. L'intégration Face Landmarker attend l'installation complète de MediaPipe et l'ajout du modèle `.task`. Le flux caméra et l'interface existants n'ont pas été modifiés dans cette étape.
+
+### Commit et publication
+Commit de la brique EMA créé : `b19bdba` — `feat(vision): add temporal landmark smoothing`. Les changements de code sont commités ; le backlog et ce journal enregistrent le hash. La publication sur `origin/main` reste à effectuer après le commit documentaire.

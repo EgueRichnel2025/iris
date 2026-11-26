@@ -10,6 +10,7 @@ L'application de référence est la version native Python située dans `desktop/
 ## Backlog priorisé
 
 ### P0 — Suivi facial sur desktop
+- [x] Implémenter un utilitaire de lissage temporel EMA indépendant et le couvrir par des tests unitaires.
 - [ ] Intégrer MediaPipe Face Landmarker dans le pipeline de frames de l'application desktop.
 - [ ] Définir les modules de détection, landmarks, tracking et pose avec des responsabilités distinctes.
 - [ ] Ajouter le suivi temporel et le lissage des landmarks ; mesurer la stabilité et les FPS.
@@ -66,3 +67,19 @@ L'application de référence est la version native Python située dans `desktop/
 4. Mettre à jour aussi `docs/development/DEVELOPMENT_LOG.md` à chaque session.
 5. Après chaque commit, inscrire son hash et son message ; après chaque push, inscrire la branche et confirmer le résultat.
 6. Ne jamais marquer une tâche ou une validation comme terminée sans preuve d'exécution.
+
+
+### 2026-11-26 — Première brique de stabilisation des landmarks
+
+| # | Action | Résultat |
+| --- | --- | --- |
+| 1 | Vérification de la branche et du dépôt distant. | `main` était synchronisée avec `origin/main` avant le travail. |
+| 2 | Inspection de l'environnement Python, des dépendances verrouillées et des assets. | Python 3.14.4, NumPy et OpenCV présents ; MediaPipe absent de l'environnement actif ; aucun modèle Face Landmarker `.task` dans le dépôt. La dépendance MediaPipe 1.2.3 est bien présente dans `uv.lock` avec une roue Linux x86_64. |
+| 3 | Tentative de synchronisation `uv sync --extra dev`. | Téléchargements de plusieurs dépendances lourdes commencés ; synchronisation interrompue avant installation complète. L'environnement existant a été conservé et utilisé pour les tests. |
+| 4 | Création de `desktop/iris/vision/` et de `LandmarkSmoother`. | Lissage EMA, validation de alpha, coordonnées 2D/3D, reset et réinitialisation si le nombre/la forme des points change. |
+| 5 | Ajout de `desktop/tests/test_smoothing.py`. | 12 cas de test ajoutés, y compris les valeurs limites, les formes invalides et les coordonnées non finies. |
+| 6 | Exécution de la suite complète. | **21 tests réussis** ; `compileall` et `git diff --check` réussis. |
+| 7 | Commit de la brique EMA. | `b19bdba` — `feat(vision): add temporal landmark smoothing`. |
+| 8 | Mise à jour du backlog et du journal avec le hash du commit. | Enregistrée localement ; commit documentaire à créer. |
+
+La détection faciale MediaPipe n'est pas encore intégrée à la caméra : le paquet n'est pas encore installé dans l'environnement actif et le modèle `.task` manque. La prochaine tâche est de finaliser les dépendances, récupérer et versionner proprement l'asset du modèle, puis créer l'adaptateur Face Landmarker.
