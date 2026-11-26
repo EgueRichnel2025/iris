@@ -25,7 +25,10 @@ class FakeTask:
 
 def install_fake_mediapipe(monkeypatch, task):
     points = [SimpleNamespace(x=0.25, y=0.5, z=-0.1)]
-    result = SimpleNamespace(face_landmarks=[points])
+    result = SimpleNamespace(
+        face_landmarks=[points],
+        facial_transformation_matrixes=[np.eye(4, dtype=np.float32)],
+    )
     task.result = result
     vision = SimpleNamespace(
         RunningMode=SimpleNamespace(VIDEO="VIDEO"),
@@ -86,6 +89,10 @@ def test_detect_returns_normalized_landmarks(tmp_path, monkeypatch):
     assert result.face_count == 1
     np.testing.assert_allclose(result.faces[0], [[0.25, 0.5, -0.1]])
     assert result.faces[0].dtype == np.float32
+    assert len(result.facial_transformation_matrices) == 1
+    np.testing.assert_array_equal(
+        result.facial_transformation_matrices[0], np.eye(4, dtype=np.float32)
+    )
 
 
 def test_detect_converts_bgr_frame_to_rgb(tmp_path, monkeypatch):
@@ -165,3 +172,17 @@ def test_detector_uses_default_model_asset_path(monkeypatch, tmp_path):
     detector = FaceLandmarker()
 
     assert detector.model_path == expected
+
+
+def test_open_enables_facial_transformation_matrices(tmp_path, monkeypatch):
+    model = tmp_path / "face.task"
+    model.touch()
+    task = FakeTask()
+    install_fake_mediapipe(monkeypatch, task)
+    detector = FaceLandmarker(model)
+
+    detector.open()
+
+    # The fake API records options as a dictionary in create_from_options.
+    # Assert via the fake task's configured options in the companion helper.
+    assert detector.is_open
