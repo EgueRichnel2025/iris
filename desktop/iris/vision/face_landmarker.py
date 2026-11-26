@@ -17,6 +17,7 @@ class FaceLandmarkResult:
 
     timestamp_ms: int
     faces: tuple[NDArray[np.float32], ...]
+    facial_transformation_matrices: tuple[NDArray[np.float32], ...] = ()
 
     @property
     def face_count(self) -> int:
@@ -81,6 +82,7 @@ class FaceLandmarker:
             min_face_detection_confidence=self.min_detection_confidence,
             min_face_presence_confidence=self.min_presence_confidence,
             min_tracking_confidence=self.min_tracking_confidence,
+            output_facial_transformation_matrixes=True,
         )
         self._task = mp.tasks.vision.FaceLandmarker.create_from_options(options)
         self._last_timestamp_ms = None
@@ -125,7 +127,15 @@ class FaceLandmarker:
             )
             for face in detection.face_landmarks
         )
-        return FaceLandmarkResult(timestamp_ms=timestamp_ms, faces=faces)
+        matrices = tuple(
+            np.asarray(matrix, dtype=np.float32)
+            for matrix in getattr(detection, "facial_transformation_matrixes", ())
+        )
+        return FaceLandmarkResult(
+            timestamp_ms=timestamp_ms,
+            faces=faces,
+            facial_transformation_matrices=matrices,
+        )
 
     def close(self) -> None:
         """Release MediaPipe resources; safe to call more than once."""
