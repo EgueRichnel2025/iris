@@ -38,6 +38,7 @@ class CameraThread(QThread):
     vision_error = Signal(str)
     face_count_updated = Signal(int)
     head_pose_updated = Signal(float, float, float)
+    face_transform_updated = Signal(object)
     fps_updated = Signal(float)
 
     def __init__(
@@ -118,6 +119,8 @@ class CameraThread(QThread):
                                 f"Accessoire indisponible : {exc}"
                             )
                         self.face_count_updated.emit(vision_result.face_count)
+                        matrices = getattr(vision_result, "facial_transformation_matrices", ())
+                        self.face_transform_updated.emit(matrices[0].copy() if matrices else None)
                         if vision_result.smoothed_faces:
                             try:
                                 pose = self._pose_estimator.estimate(
@@ -141,6 +144,7 @@ class CameraThread(QThread):
                         vision_pipeline.close()
                         vision_pipeline = None
                         self.face_count_updated.emit(0)
+                        self.face_transform_updated.emit(None)
                         self.head_pose_updated.emit(0.0, 0.0, 0.0)
 
                 processed = apply_effect(frame, self._effect)

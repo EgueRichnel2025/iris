@@ -198,3 +198,29 @@ def test_camera_applies_selected_accessory_to_each_detected_frame(monkeypatch):
     assert applied == [("glasses", 1), ("glasses", 1)]
     assert pipeline.closed
     assert capture.released
+
+
+def test_camera_emits_face_transform_for_gui_thread(monkeypatch):
+    capture = FakeCapture()
+    pipeline = FakeVisionPipeline()
+    matrix = np.eye(4, dtype=np.float32)
+    matrix[2, 3] = -25.0
+    pipeline.process = lambda frame, timestamp_ms: SimpleNamespace(
+        face_count=1,
+        smoothed_faces=(np.zeros((478, 3), dtype=np.float32),),
+        facial_transformation_matrices=(matrix,),
+    )
+    monkeypatch.setattr(camera_module.cv2, "VideoCapture", lambda *_args: capture)
+    monkeypatch.setattr(
+        camera_module.time, "monotonic_ns",
+        iter([1_000_000, 2_000_000]).__next__,
+    )
+    camera = CameraThread(vision_pipeline=pipeline, pose_estimator=FakePoseEstimator())
+    transforms = []
+    camera.face_transform_updated.connect(transforms.append)
+
+    camera.run()
+
+    assert len(transforms) == 2
+    np.testing.assert_array_equal(transforms[0], matrix)
+    assert transforms[0] is not matrix
