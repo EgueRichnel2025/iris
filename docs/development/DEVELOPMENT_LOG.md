@@ -553,3 +553,46 @@ Les changements ont ensuite été découpés en commits et publiés sur `origin/
 - Le bundle Linux est généré et exécutable sur le poste Ubuntu utilisé pour cette session. Il n'est pas un exécutable Windows.
 - Commits additionnels : `b248990` (correction des scripts de lancement/build pour ne pas relancer une synchronisation complète) et `d270274` (documentation du build Linux). Les deux sont publiés sur `origin/main`.
 - La branche `main` est synchronisée avec `origin/main` après le push du commit `d270274`.
+
+---
+
+## Session 2026-11-26 — Documentation des stacks et création du backlog
+
+### Objectif
+Clarifier la présentation GitHub de l'application desktop, séparer les stacks et mettre en place un suivi durable des tâches et des actions.
+
+### Inspection
+- Reconnexion à Desktop Commander et accès au dépôt /run/media/richnel/Richnel_disque/Projet/iris.
+- Branche active : main, suivie de origin/main.
+- Dépôt distant : https://github.com/EgueRichnel2025/iris.git.
+- L'état initial de cette session contenait uniquement les deux README modifiés lors du travail précédent.
+- Aucun fichier Backlog dédié n'existait. Le journal de développement existant a été conservé.
+
+### Réalisations
+- Réécriture du README racine : produit, fonctionnalités actuelles/prévues, stacks, architecture, installation, tests, packaging, structure et roadmap.
+- Organisation des technologies par responsabilités : desktop, vision/caméra, traitement d'image, packaging, qualité/développement et prototype web historique.
+- Distinction explicite de MediaPipe : dépendance déclarée, intégration au pipeline desktop encore à réaliser.
+- Réécriture de desktop/README.md pour documenter la stack desktop et ses commandes.
+- Création de BACKLOG.md à la racine, car aucun fichier de backlog n'était présent. Le fichier contient les tâches priorisées et l'historique des actions.
+
+### Fichiers créés ou modifiés
+- README.md — réorganisation complète.
+- desktop/README.md — guide desktop clarifié.
+- BACKLOG.md — nouveau suivi des tâches et de l'historique.
+- docs/development/DEVELOPMENT_LOG.md — ajout de cette entrée de session.
+
+### Validations exécutées
+| Commande | Résultat |
+| --- | --- |
+| git diff --check | Réussie. |
+| cd desktop && .venv/bin/python -m pytest -q | Réussie — 9 tests passés en 0,45 s. |
+
+La commande uv run --directory desktop pytest -q a été tentée, mais uv a commencé à télécharger plusieurs wheels volumineux pendant sa synchronisation. La suite a donc été exécutée avec l'interpréteur de l'environnement desktop existant ; le résultat final est vert.
+
+### Commits et publication
+Les README seront commités séparément du backlog et du journal afin de garder une trace documentaire explicite. Les hashes et le statut du push seront ajoutés après confirmation des commandes Git.
+
+### Suite
+- Publier les changements documentaires sur origin/main.
+- Poursuivre l'intégration de MediaPipe Face Landmarker au pipeline desktop.
+- Tenir BACKLOG.md et ce journal à jour à chaque session.
