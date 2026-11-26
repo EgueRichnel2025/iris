@@ -1113,3 +1113,23 @@ Le flux caméra de `MainWindow` reste rendu dans un QLabel. Le widget 3D n'est p
 
 ### Suite
 Remplacer le widget natif QVTK/X11 par un widget Qt/OpenGL basé sur un contexte OpenGL géré par Qt (`QOpenGLWidget` + `vtkGenericOpenGLRenderWindow`) ou un autre mécanisme de rendu compatible. Ne réintégrer le modèle à `MainWindow` qu'après un smoke test graphique reproductible. Ensuite calibrer les intrinsèques webcam, le repère du modèle, le pivot et l'occlusion.
+
+## Session 2026-11-26 — Diagnostic Qt/OpenGL après l'échec X11
+
+### Vérifications
+- État initial : `main` propre, `HEAD` et `origin/main` à `4d0f856`.
+- PySide6 Essentials 6.10.2 installé dans le système ne contient pas les modules Python `QtOpenGLWidgets` et `QtOpenGL`, bien que les bibliothèques Qt natives soient installées.
+- Téléchargement des paquets Ubuntu `python3-pyside6.qtopenglwidgets` et `python3-pyside6.qtopengl`, puis extraction locale dans `/tmp` et copie temporaire des modules dans `.venv`. Aucun fichier suivi par Git ni aucune dépendance projet n'a été modifié par cette manipulation.
+- Smoke test indépendant : un `QOpenGLWidget` PySide6 obtient un contexte OpenGL valide et se ferme proprement.
+
+### Résultats VTK
+- `vtkmodules.qt.QVTKRWIBase = "QOpenGLWidget"` permet de construire le widget QVTK avec la classe de base OpenGL de Qt.
+- Avec `vtkGenericOpenGLRenderWindow`, le test d'une scène VTK simple segfault au premier rendu (`Render()`).
+- `vtkEGLRenderWindow` en mode offscreen segfault également pendant le rendu sur cette machine.
+- Les bindings Python VTK disponibles n'exposent que `QVTKRenderWindowInteractor`, pas `QVTKOpenGLNativeWidget`. La documentation VTK identifie ce dernier comme le widget natif adapté à `vtkGenericOpenGLRenderWindow`.
+
+### Décision
+Ne pas intégrer ni reconnecter VTK à `MainWindow` sur la base d'un simple changement de classe Qt : le rendu n'est pas stable. Comparer maintenant un prototype Qt Quick 3D (PySide6 Addons) avec un prototype OpenGL dédié dans `QOpenGLWidget` utilisant un parseur glTF Python. Choisir seulement après un chargement GLB et une capture graphique stables.
+
+### Limites
+La caméra et la matrice MediaPipe restent disponibles, mais aucun rendu GLB superposé à la webcam n'est validé. Pas de commit fonctionnel ni de push pour cette session de diagnostic. Les paquets ajoutés manuellement à `.venv` sont des essais locaux non déclarés dans le projet.

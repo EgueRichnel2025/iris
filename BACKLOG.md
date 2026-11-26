@@ -289,3 +289,18 @@ Note technique : les angles utilisent un modèle facial générique et une matri
 | 5 | Commits. | `feat(camera): publish RGB frames for AR composition` et `feat(ar): composite camera frames behind 3D accessories`. Publication à contrôler. |
 
 **État honnête :** les frames RGB sont disponibles et la scène VTK sait recevoir une image de fond, mais la scène 3D n'est pas encore intégrée à `MainWindow`. L'alignement visuel des lunettes avec le visage et le rendu sur webcam restent non validés. Prochaine étape technique : remplacer le widget VTK natif X11 par une intégration Qt/OpenGL compatible (ou une surface de rendu indépendante), puis refaire le smoke test complet avant de reconnecter l'interface.
+
+### 2026-11-26 — Diagnostic du backend Qt/OpenGL pour le compositing AR
+
+| # | Action | Résultat |
+| --- | --- | --- |
+| 1 | Vérification de l'état initial. | Branche `main` propre et synchronisée avec `origin/main` au commit `4d0f856`. Les limites de la tentative QVTK/X11 précédente sont conservées. |
+| 2 | Vérification des bindings Qt installés. | PySide6 Essentials 6.10.2 ne fournit pas `QtOpenGLWidgets` ni `QtOpenGL` dans l'environnement initial ; les bibliothèques système Qt sont présentes. |
+| 3 | Smoke test Qt OpenGL. | Les paquets Ubuntu correspondants ont été extraits dans un environnement local temporaire (sans modification des dépendances du projet). Un `QOpenGLWidget` indépendant crée un contexte valide et se ferme proprement. |
+| 4 | Test VTK avec base QOpenGLWidget et `vtkGenericOpenGLRenderWindow`. | Le widget QVTK passe bien à la classe de base `QOpenGLWidget`, mais le rendu provoque un segmentation fault. Le rendu EGL hors écran VTK provoque également un crash sur cette machine. Ces voies ne sont pas intégrables en l'état. |
+| 5 | Inspection des bindings VTK. | Seul `QVTKRenderWindowInteractor` est exposé en Python ; le widget moderne `QVTKOpenGLNativeWidget`, qui gère le contexte Qt et `vtkGenericOpenGLRenderWindow`, n'est pas disponible dans les bindings installés. |
+| 6 | État du dépôt. | Aucun code applicatif modifié pendant ce diagnostic ; les essais de paquets restent locaux à `.venv` et `/tmp`. Aucune régression introduite dans le code versionné. |
+
+**Décision technique :** ne pas connecter QVTK à `MainWindow` et ne pas contourner le segmentation fault. Deux pistes à comparer avec un prototype minimal avant choix : (a) Qt Quick 3D avec le module PySide6 Addons, qui sait charger glTF/GLB ; (b) un renderer OpenGL dédié dans `QOpenGLWidget` avec un parseur glTF Python. Le critère est un rendu GLB stable dans la fenêtre Qt, pas seulement un import de fichier.
+
+**État honnête :** la caméra et la matrice faciale sont disponibles ; le modèle GLB est présent ; aucun rendu 3D composité sur la webcam n'est encore validé. Aucun commit fonctionnel ni push n'est revendiqué pour cette session de diagnostic.
