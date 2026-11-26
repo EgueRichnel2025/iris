@@ -41,6 +41,7 @@ class MainWindow(QMainWindow):
         self.camera.camera_error.connect(self._camera_failed)
         self.camera.fps_updated.connect(self._show_fps)
         self.camera.face_count_updated.connect(self._show_face_count)
+        self.camera.head_pose_updated.connect(self._show_head_pose)
         self.camera.vision_error.connect(self._vision_failed)
         QTimer.singleShot(450, self.camera.start)
 
@@ -163,6 +164,10 @@ class MainWindow(QMainWindow):
         controls.addWidget(self.capture_button)
         controls.addStretch(1)
 
+        self.pose_label = QLabel("YAW —° · PITCH —° · ROLL —°")
+        self.pose_label.setObjectName("hint")
+        controls.addWidget(self.pose_label)
+
         self.fps_label = QLabel("— FPS")
         self.fps_label.setObjectName("hint")
         controls.addWidget(self.fps_label)
@@ -214,9 +219,15 @@ class MainWindow(QMainWindow):
         else:
             self.vision_label.setText(f"{count} VISAGES DÉTECTÉS")
 
+    def _show_head_pose(self, yaw: float, pitch: float, roll: float) -> None:
+        self.pose_label.setText(
+            f"YAW {yaw:+.0f}° · PITCH {pitch:+.0f}° · ROLL {roll:+.0f}°"
+        )
+
     def _vision_failed(self, message: str) -> None:
         self.vision_label.setText("SUIVI FACIAL INDISPONIBLE")
         self.vision_label.setToolTip(message)
+        self.pose_label.setText("POSE INDISPONIBLE")
 
     def _toggle_camera(self) -> None:
         if self.camera.isRunning():
@@ -227,10 +238,12 @@ class MainWindow(QMainWindow):
             self.camera_view.setText("Caméra désactivée")
             self.status_label.setText("CAMÉRA EN PAUSE")
             self.vision_label.setText("SUIVI EN PAUSE")
+            self.pose_label.setText("POSE EN PAUSE")
         else:
             self.camera_view.setText("Starting your camera…")
             self.status_label.setText("INITIALIZING CAMERA")
             self.vision_label.setText("INITIALIZING FACE TRACKING")
+            self.pose_label.setText("YAW —° · PITCH —° · ROLL —°")
             self.camera.start()
 
     def _capture_photo(self) -> None:
