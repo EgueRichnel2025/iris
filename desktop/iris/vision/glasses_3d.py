@@ -59,6 +59,8 @@ class Glasses3DScene:
     reader: Any
     actor: Any
     initialized: bool = False
+    image_importer: Any = None
+    image_actor: Any = None
 
 
 def create_glasses_3d_scene(model_path: str | Path, parent: Any = None) -> Glasses3DScene:
@@ -88,16 +90,40 @@ def create_glasses_3d_scene(model_path: str | Path, parent: Any = None) -> Glass
 
     renderer = vtkRenderer()
     renderer.SetBackground(0.035, 0.055, 0.085)
+    renderer.SetLayer(0)
     mapper = vtkCompositePolyDataMapper()
     mapper.SetInputConnection(reader.GetOutputPort())
     actor = vtkActor()
     actor.SetMapper(mapper)
     renderer.AddActor(actor)
+    actor.SetVisibility(False)
 
-    widget.GetRenderWindow().AddRenderer(renderer)
-    renderer.ResetCamera()
+    render_window = widget.GetRenderWindow()
+    render_window.SetNumberOfLayers(2)
+    render_window.AddRenderer(renderer)
 
-    return Glasses3DScene(widget=widget, renderer=renderer, reader=reader, actor=actor)
+    try:
+        from vtkmodules.vtkIOImage import vtkImageImport
+        from vtkmodules.vtkRenderingCore import vtkImageActor, vtkRenderer
+    except ImportError as exc:
+        raise RuntimeError("VTK image rendering modules are unavailable") from exc
+
+    background = vtkRenderer()
+    background.SetLayer(0)
+    background.InteractiveOff()
+    background.SetActiveCamera(renderer.GetActiveCamera())
+    render_window.AddRenderer(background)
+    importer = vtkImageImport()
+    image_actor = vtkImageActor()
+    image_actor.GetMapper().SetInputConnection(importer.GetOutputPort())
+    background.AddActor(image_actor)
+    renderer.SetLayer(1)
+    renderer.SetPreserveColorBuffer(True)
+
+    return Glasses3DScene(
+        widget=widget, renderer=renderer, reader=reader, actor=actor,
+        image_importer=importer, image_actor=image_actor,
+    )
 
 
 def initialize_glasses_3d_scene(scene: Glasses3DScene) -> None:
@@ -107,3 +133,43 @@ def initialize_glasses_3d_scene(scene: Glasses3DScene) -> None:
     scene.widget.Initialize()
     scene.widget.GetRenderWindow().Render()
     scene.initialized = True
+
+
+def update_glasses_video_frame(scene: Glasses3DScene, frame_rgb: Any) -> None:
+    """Update the video background behind the 3D glasses in the same render."""
+    import numpy as np
+
+    frame = np.asarray(frame_rgb, dtype=np.uint8)
+    if frame.ndim != 3 or frame.shape[2] != 3:
+        raise ValueError("video frame must be an RGB image with three channels")
+    height, width, _ = frame.shape
+    importer = scene.image_importer
+    if importer is None:
+        raise RuntimeError("video background is not configured")
+    # VTK image data starts at the lower-left; camera frames start at the top-left.
+    bottom_up = np.ascontiguousarray(frame[::-1])
+    importer.SetDataScalarTypeToUnsignedChar()
+    importer.SetNumberOfScalarComponents(3)
+    importer.SetWholeExtent(0, width - 1, 0, height - 1, 0, 0)
+    importer.SetDataExtentToWholeExtent()
+    importer.CopyImportVoidPointer(bottom_up.tobytes(), bottom_up.nbytes)
+    importer.Update()
+
+    # Put the video plane 100 cm from the virtual camera and use a calibrated
+    # pinhole approximation (focal length 900 px) for the initial preview.
+    focal_px = float(max(width, height)) * 1.25
+    distance_cm = 100.0
+    plane_width = width * distance_cm / focal_px
+    plane_height = height * distance_cm / focal_px
+    scene.image_actor.SetPosition(-plane_width / 2, -plane_height / 2, -distance_cm)
+    scene.image_actor.SetScale(plane_width / width, plane_height / height, 1.0)
+
+    camera = scene.renderer.GetActiveCamera()
+    camera.SetPosition(0.0, 0.0, 0.0)
+    camera.SetFocalPoint(0.0, 0.0, -1.0)
+    camera.SetViewUp(0.0, 1.0, 0.0)
+    camera.SetViewAngle(2.0 * np.degrees(np.arctan(height / (2.0 * focal_px))))
+    camera.SetClippingRange(0.1, 500.0)
+    scene.image_importer.Modified()
+    if scene.initialized:
+        scene.widget.GetRenderWindow().Render()
