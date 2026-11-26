@@ -17,6 +17,7 @@ class VisionFrameResult:
     timestamp_ms: int
     faces: tuple[NDArray[np.float32], ...]
     smoothed_faces: tuple[NDArray[np.float32], ...]
+    facial_transformation_matrices: tuple[NDArray[np.float32], ...] = ()
 
     @property
     def face_count(self) -> int:
@@ -53,9 +54,13 @@ class FaceVisionPipeline:
 
         detection = self.detector.detect(frame_bgr, timestamp_ms)
         faces = detection.faces
+        matrices = tuple(
+            np.asarray(matrix, dtype=np.float32)
+            for matrix in getattr(detection, "facial_transformation_matrices", ())
+        )
         if not faces:
             self._smoothers.clear()
-            return VisionFrameResult(timestamp_ms, faces, ())
+            return VisionFrameResult(timestamp_ms, faces, (), ())
 
         if len(self._smoothers) != len(faces):
             self._smoothers = [
@@ -66,7 +71,7 @@ class FaceVisionPipeline:
             smoother.smooth(face)
             for smoother, face in zip(self._smoothers, faces, strict=True)
         )
-        return VisionFrameResult(timestamp_ms, faces, smoothed)
+        return VisionFrameResult(timestamp_ms, faces, smoothed, matrices)
 
     def close(self) -> None:
         if self._is_open:

@@ -76,3 +76,40 @@ def test_pipeline_closes_detector_and_can_be_closed_twice():
 def test_pipeline_validates_smoothing_alpha():
     with pytest.raises(ValueError, match="smoother_alpha"):
         FaceVisionPipeline(FakeDetector([]), smoother_alpha=1.5)
+
+
+def test_pipeline_preserves_facial_transformation_matrices():
+    landmarks = np.zeros((478, 3), dtype=np.float32)
+    matrix = np.eye(4, dtype=np.float32)
+    matrix[:3, 3] = (2.0, -3.0, -25.0)
+
+    class MatrixDetector(FakeDetector):
+        def detect(self, frame, timestamp_ms):
+            return SimpleNamespace(
+                timestamp_ms=timestamp_ms,
+                faces=(landmarks,),
+                facial_transformation_matrices=(matrix,),
+            )
+
+    pipeline = FaceVisionPipeline(MatrixDetector([]))
+    pipeline.open()
+    result = pipeline.process(np.zeros((2, 2, 3), dtype=np.uint8), 10)
+
+    assert len(result.facial_transformation_matrices) == 1
+    np.testing.assert_array_equal(result.facial_transformation_matrices[0], matrix)
+
+
+def test_pipeline_clears_facial_transform_when_face_is_lost():
+    class MatrixDetector(FakeDetector):
+        def detect(self, frame, timestamp_ms):
+            return SimpleNamespace(
+                timestamp_ms=timestamp_ms,
+                faces=(),
+                facial_transformation_matrices=(),
+            )
+
+    pipeline = FaceVisionPipeline(MatrixDetector([]))
+    pipeline.open()
+    result = pipeline.process(np.zeros((2, 2, 3), dtype=np.uint8), 10)
+
+    assert result.facial_transformation_matrices == ()
