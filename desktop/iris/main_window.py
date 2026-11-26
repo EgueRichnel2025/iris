@@ -21,6 +21,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from iris.accessories import ACCESSORIES
 from iris.camera import CameraThread
 from iris.effects import EFFECTS
 
@@ -111,6 +112,21 @@ class MainWindow(QMainWindow):
         self.filter_list.currentItemChanged.connect(self._select_effect)
         side.addWidget(self.filter_list, 1)
 
+        accessory_title = QLabel("AR ACCESSORIES")
+        accessory_title.setObjectName("eyebrow")
+        side.addWidget(accessory_title)
+
+        self.accessory_list = QListWidget()
+        self.accessory_list.setSpacing(2)
+        self.accessory_list.setAccessibleName("AR accessories")
+        for accessory_id, label in ACCESSORIES:
+            item = QListWidgetItem(label)
+            item.setData(Qt.ItemDataRole.UserRole, accessory_id)
+            self.accessory_list.addItem(item)
+        self.accessory_list.setCurrentRow(0)
+        self.accessory_list.currentItemChanged.connect(self._select_accessory)
+        side.addWidget(self.accessory_list, 0)
+
         note_title = QLabel("YOUR CAMERA, YOUR RULES")
         note_title.setObjectName("eyebrow")
         side.addWidget(note_title)
@@ -184,6 +200,14 @@ class MainWindow(QMainWindow):
     def _select_effect(self, current: QListWidgetItem | None, _previous: QListWidgetItem | None) -> None:
         if current:
             self.camera.set_effect(str(current.data(Qt.ItemDataRole.UserRole)))
+
+    def _select_accessory(
+        self, current: QListWidgetItem | None, _previous: QListWidgetItem | None
+    ) -> None:
+        if current:
+            self.camera.set_accessory(
+                str(current.data(Qt.ItemDataRole.UserRole))
+            )
 
     def _show_frame(self, image: QImage) -> None:
         pixmap = QPixmap.fromImage(image).scaled(

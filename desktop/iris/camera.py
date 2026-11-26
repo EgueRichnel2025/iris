@@ -10,10 +10,10 @@ import cv2
 from PySide6.QtCore import QThread, Signal
 from PySide6.QtGui import QImage
 
+from iris.accessories import apply_accessory
 from iris.effects import apply_effect
 from iris.vision.face_landmarker import FaceLandmarker
 from iris.vision.head_pose import HeadPoseEstimator
-from iris.vision.overlay import draw_landmarks
 from iris.vision.pipeline import FaceVisionPipeline
 
 
@@ -51,6 +51,7 @@ class CameraThread(QThread):
         self.camera_index = camera_index
         self._running = False
         self._effect = "original"
+        self._accessory = "none"
         self._vision_pipeline = vision_pipeline
         self._pose_estimator = (
             pose_estimator if pose_estimator is not None else HeadPoseEstimator()
@@ -58,6 +59,9 @@ class CameraThread(QThread):
 
     def set_effect(self, effect: str) -> None:
         self._effect = effect
+
+    def set_accessory(self, accessory: str) -> None:
+        self._accessory = accessory
 
     def stop(self) -> None:
         self._running = False
@@ -105,7 +109,14 @@ class CameraThread(QThread):
                     timestamp_ms = time.monotonic_ns() // 1_000_000
                     try:
                         vision_result = vision_pipeline.process(frame, timestamp_ms)
-                        frame = draw_landmarks(frame, vision_result.smoothed_faces)
+                        try:
+                            frame = apply_accessory(
+                                frame, self._accessory, vision_result.smoothed_faces
+                            )
+                        except (ValueError, cv2.error) as exc:
+                            self.vision_error.emit(
+                                f"Accessoire indisponible : {exc}"
+                            )
                         self.face_count_updated.emit(vision_result.face_count)
                         if vision_result.smoothed_faces:
                             try:
