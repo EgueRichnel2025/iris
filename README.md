@@ -28,7 +28,7 @@ The active product is the **native desktop application** in `desktop/`. It runs 
 | Real-time image filters — Original, Warm, Cool, Noir, Vivid and Soft Focus | Available |
 | Camera controls and FPS display | Available |
 | Local photo capture | Available |
-| Face landmarks and tracking | Planned |
+| Face detection and 478-point landmark tracking | Available |
 | Face accessories and AR overlays | Planned |
 | Mouth and face deformations | Planned |
 | Video recording | Planned |
@@ -49,12 +49,12 @@ The stack is grouped by responsibility. The first groups describe the active des
     </td>
     <td width="50%" valign="top">
       <h3>Computer vision & camera</h3>
-      <p>Camera acquisition and the future facial-analysis layer.</p>
+      <p>Camera acquisition and real-time facial landmark analysis.</p>
       <p>
         <img alt="OpenCV" src="https://img.shields.io/badge/OpenCV-Camera_%26_Vision-5C3EE8?logo=opencv&logoColor=white">
-        <img alt="MediaPipe" src="https://img.shields.io/badge/MediaPipe-Face_tracking_planned-4285F4?logo=google&logoColor=white">
+        <img alt="MediaPipe" src="https://img.shields.io/badge/MediaPipe-Face_tracking-4285F4?logo=google&logoColor=white">
       </p>
-      <small>MediaPipe is declared as a dependency; its integration into the active desktop frame pipeline is still planned.</small>
+      <small>MediaPipe Face Landmarker runs locally in VIDEO mode. Its 478 landmarks are temporally smoothed and rendered over the live camera preview.</small>
     </td>
   </tr>
   <tr>
@@ -109,13 +109,22 @@ OpenCV camera acquisition
 Frame processing (OpenCV + NumPy)
   │
   ▼
+MediaPipe Face Landmarker
+  │
+  ▼
+478 landmarks + EMA smoothing
+  │
+  ▼
+Landmark overlay
+  │
+  ▼
 PySide6 desktop interface
   │
   ├── Live preview
   └── Local photo capture
 ```
 
-The camera runs in a dedicated thread so that frame acquisition does not block the interface. Each frame is processed locally before being displayed.
+The camera and face-analysis pipeline run in a dedicated thread so that frame acquisition and inference do not block the interface. MediaPipe detects and tracks 478 facial landmarks per face; an EMA smoother stabilizes them before they are drawn on the preview. MainWindow receives only the rendered frame and face-count status. All processing stays local.
 
 ## Getting started
 
@@ -182,8 +191,8 @@ iris/
 ## Roadmap
 
 1. Strengthen the desktop camera and rendering foundation.
-2. Integrate face detection, facial landmarks and stable tracking.
-3. Add face accessories and AR overlays.
+2. Estimate head pose (yaw, pitch and roll) from facial landmarks.
+3. Add face accessories and AR overlays, stabilized by head pose.
 4. Implement mesh-based mouth and face deformations.
 5. Add expression-driven effects and video capture.
 6. Improve performance and cross-platform distribution.

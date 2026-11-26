@@ -783,3 +783,54 @@ Assembler la détection et le lissage temporel dans une couche vision dédiée, 
 
 ### Commit
 - 4f9b8d6 — build(desktop): bundle face model and MediaPipe runtime.
+
+
+## Session 2026-11-26 — Intégration du suivi facial temps réel
+
+### Objectif
+Installer et valider le runtime MediaPipe réel, puis connecter le Face Landmarker au flux webcam sans transférer la détection dans MainWindow.
+
+### Installation et validation du modèle
+- Installation de MediaPipe 1.2.3 dans desktop/.venv. L'import de mediapipe.tasks.vision est fonctionnel.
+- Chargement réel de desktop/assets/models/face_landmarker.task réussi.
+- Inférence sur une image synthétique noire : exécution réussie et zéro visage détecté, résultat attendu.
+- Test direct webcam : cinq frames successives, chacune renvoyant un visage avec 478 landmarks. La webcam est libérée proprement après le test.
+
+### Réalisations techniques
+- Création de desktop/iris/vision/overlay.py : dessin des landmarks normalisés sur une copie BGR de la frame, en réutilisant la conversion coordonnées→pixels.
+- Intégration de FaceVisionPipeline dans CameraThread. Le thread ouvre le détecteur au démarrage, utilise des timestamps monotones, lisse les coordonnées et applique l'overlay avant le rendu.
+- Ajout des signaux face_count_updated et vision_error. Une panne de vision n'empêche pas la caméra de continuer à afficher le flux.
+- MainWindow reste une couche d'affichage : elle reçoit le nombre de visages et affiche séparément le statut caméra et le statut de détection.
+- Fermeture du pipeline et de la caméra dans le bloc finally du thread.
+
+### Fichiers créés ou modifiés
+- desktop/iris/vision/overlay.py
+- desktop/tests/test_vision_overlay.py
+- desktop/iris/camera.py
+- desktop/iris/main_window.py
+- desktop/tests/test_camera_vision.py
+- desktop/IRIS.spec
+
+### Validations exécutées
+| Vérification | Résultat |
+| --- | --- |
+| Suite pytest desktop | 61 tests réussis. |
+| compileall iris tests | Réussi. |
+| git diff --check | Réussi. |
+| Face Landmarker réel sur 5 frames webcam | 1 visage et 478 landmarks par frame. |
+| CameraThread + boucle événementielle Qt pendant 3,5 s | 39 échantillons positifs ; aucun message d'erreur ; thread arrêté. |
+| MainWindow réelle pendant 4,5 s | CAMÉRA ACTIVE ; 1 VISAGE DÉTECTÉ ; frame reçue ; environ 17 FPS au moment du contrôle. |
+
+### Packaging
+- PyInstaller 6.22.3 a produit le bundle Linux et l'exécutable est resté ouvert pendant un smoke test de 8 secondes (timeout volontaire, code 124).
+- Le bundle actuel pèse environ 743 Mio. L'environnement utilise encore OpenCV système 4.10.0, dont les dépendances natives embarquent des bibliothèques système lourdes (notamment VTK, GDAL, FFmpeg et OpenBLAS). Ce n'est pas une taille cible acceptable.
+- Le spec a été affiné pour collecter les ressources et binaires MediaPipe nécessaires, et limiter les imports cachés aux modules Face Landmarker. Le prochain build devra être refait dans un environnement utilisant le wheel opencv-contrib-python du lockfile.
+- Une installation de opencv-contrib-python 5.1.0.95 a été tentée, mais son téléchargement de 84,9 Mio est resté trop lent et a été interrompu. Elle n'est donc pas déclarée installée.
+- Le lanceur pyinstaller a aussi révélé un shebang lié à l'ancien chemin de montage du disque ; l'exécution par python -m PyInstaller fonctionne correctement dans le venv et a été utilisée pour le build.
+
+### Commits de code
+- 11dec19 — feat(vision): render facial landmarks on camera frames.
+- 84d065f — feat(camera): integrate real-time face tracking.
+
+### État final de la session
+Le pipeline de détection faciale est fonctionnel en direct avec la webcam et le rendu de landmarks est visible dans l'aperçu. MainWindow ne fait que présenter les résultats. La suite logique est l'exploitation des landmarks pour les accessoires AR et la pose de tête, puis les déformations faciales. La réduction du bundle Linux reste une tâche de packaging distincte.

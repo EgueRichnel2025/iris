@@ -11,13 +11,13 @@ L'application de référence est la version native Python située dans `desktop/
 
 ### P0 — Suivi facial sur desktop
 - [x] Implémenter un utilitaire de lissage temporel EMA indépendant et le couvrir par des tests unitaires.
-- [ ] Intégrer MediaPipe Face Landmarker dans le pipeline de frames de l'application desktop.
+- [x] Intégrer MediaPipe Face Landmarker dans le pipeline de frames de l'application desktop.
   - [x] Créer l'adaptateur Python isolé : chargement explicite, mode VIDEO, validation des frames, extraction des landmarks et fermeture propre.
   - [x] Télécharger le modèle local officiel et vérifier son SHA-256.
-  - [ ] Installer et tester le runtime MediaPipe réel.
+  - [x] Installer et tester le runtime MediaPipe réel (MediaPipe 1.2.3).
 - [x] Définir une première composition détection + lissage dans un pipeline vision indépendant de l'UI.
-- [ ] Ajouter le suivi temporel et le lissage des landmarks ; mesurer la stabilité et les FPS.
-- [ ] Prévoir la gestion du modèle (chargement, erreurs, fermeture propre et stratégie d'assets locaux).
+- [x] Ajouter le suivi temporel et le lissage EMA des landmarks ; mesurer la stabilité et les FPS sur le poste de développement.
+- [x] Prévoir la gestion du modèle (chargement, erreurs, fermeture propre et asset local intégré au bundle).
 
 ### P1 — Effets AR 2D
 - [ ] Ajouter des accessoires ancrés au visage (lunettes, chapeaux, oreilles, etc.).
@@ -164,3 +164,22 @@ La détection faciale MediaPipe n'est pas encore intégrée à la caméra : le p
 | 3 | Validation statique. | bash -n build.sh et compilation syntaxique IRIS.spec réussis ; 52 tests réussis. |
 | 4 | Commit. | 4f9b8d6 — build(desktop): bundle face model and MediaPipe runtime. |
 | 5 | Packaging réel. | Non exécuté : attente de l'installation du runtime MediaPipe dans le venv. |
+
+
+### 2026-11-26 — Intégration du suivi facial temps réel
+
+| # | Action | Résultat |
+| --- | --- | --- |
+| 1 | Installation de MediaPipe 1.2.3 dans desktop/.venv. | Import réel de mediapipe.tasks.vision validé. |
+| 2 | Chargement du modèle officiel avec FaceLandmarker. | Modèle chargé ; inférence sur image synthétique réussie (0 visage attendu). |
+| 3 | Test direct sur la webcam. | 5 frames traitées ; 1 visage et 478 landmarks détectés sur chacune ; libération caméra confirmée. |
+| 4 | Création de desktop/iris/vision/overlay.py et de ses tests. | Rendu des points faciaux sur une copie de l'image ; 7 cas de tests ajoutés. Commit 11dec19 — feat(vision): render facial landmarks on camera frames. |
+| 5 | Intégration du pipeline dans CameraThread et exposition du nombre de visages à MainWindow. | Détection et EMA exécutées dans le thread caméra ; erreurs vision isolées des erreurs caméra ; fermeture du détecteur à l'arrêt. Commit 84d065f — feat(camera): integrate real-time face tracking. |
+| 6 | Tests automatisés. | 61 tests réussis ; compileall et git diff --check réussis. |
+| 7 | Test QThread avec boucle Qt. | 39 échantillons de détection positive en 3,5 s ; aucun problème vision/caméra ; thread arrêté proprement. |
+| 8 | Test de l'interface réelle. | CAMÉRA ACTIVE ; 1 VISAGE DÉTECTÉ ; frame reçue ; mesure observée autour de 17 FPS pendant le smoke test. |
+| 9 | Build PyInstaller Linux. | Build réussi et lancement smoke test 8 s sans crash. Bundle de 743 Mio dans l'environnement système actuel ; réduction de taille à traiter car OpenCV système embarque de nombreuses bibliothèques natives non nécessaires. |
+| 10 | Installation du wheel OpenCV contrib verrouillé. | Tentative interrompue car le téléchargement de 84,9 Mio n'avançait pas suffisamment ; l'environnement actif utilise encore OpenCV système 4.10.0. |
+| 11 | Mise à jour du spec PyInstaller. | Collecte MediaPipe ciblée (ressources, bibliothèques dynamiques et imports Face Landmarker), exclusions de modules non utilisés. |
+
+État : le suivi facial est désormais intégré et validé en direct sur la webcam. La taille du bundle Linux reste à optimiser dans un environnement installé avec le wheel OpenCV du lockfile. Le build Windows reste à produire sur Windows.
