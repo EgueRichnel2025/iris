@@ -924,3 +924,36 @@ Créer un premier accessoire 2D ancré aux landmarks des yeux, le rendre sélect
 
 ### État et suite
 Le premier accessoire est intégré et sélectionnable. Sa géométrie suit les landmarks des yeux lissés. Il reste à effectuer un contrôle visuel en mouvement avec un visage dans le champ, puis à améliorer le rendu (monture plus réaliste, occlusion/ajustement en yaw) et ajouter chapeaux et oreilles.
+
+
+## Session 2026-11-26 — Amélioration géométrique des lunettes AR
+
+### Objectif
+Améliorer le rendu des lunettes pour qu'il épouse mieux les contours oculaires et s'adapte indépendamment à la perspective de chaque œil.
+
+### Réalisations
+- Préservation et revue d'une modification locale existante qui mesurait séparément la largeur de chaque œil et son ouverture palpébrale.
+- Ajout de tests géométriques pour le raccourcissement d'un œil en perspective, l'orientation de la ligne oculaire, la variation de l'ouverture des paupières et le rejet de coordonnées invalides.
+- Ajout de `LensGeometry.contour`, composé des coins de l'œil et de points des paupières supérieures/inférieures. Le contour est agrandi autour du centre dans le repère local de l'œil : largeur et hauteur sont ajustées indépendamment.
+- Remplacement des ellipses génériques par des polygones de lentilles remplis en transparence (`fillPoly`) et des montures tracées (`polylines`). Le pont nasal et les branches restent ancrés aux bords internes/externes calculés.
+- Chaque lentille reste calculée à partir de son propre œil ; le raccourcissement perspectif d'un côté ne force donc pas l'autre côté à garder la même taille.
+
+### Fichiers modifiés
+- `desktop/iris/vision/glasses.py`
+- `desktop/tests/test_glasses.py`
+
+### Validations
+| Vérification | Résultat |
+| --- | --- |
+| Tests ciblés lunettes | 14 tests réussis. |
+| Suite complète desktop | 101 tests réussis. |
+| `compileall iris tests` | Réussi. |
+| `git diff --check` | Réussi. |
+| Test caméra réel avec visage présent | Non effectué pendant cette étape ; aucune validation visuelle réelle n'est revendiquée. |
+
+### Commits
+- `392565b` — `test(ar): cover perspective-aware glasses geometry`.
+- `a303495` — `feat(ar): render glasses from expanded eye contours`.
+
+### Suite
+Effectuer un contrôle visuel webcam avec un visage présent, mesurer les résultats sur plusieurs angles de tête, puis travailler l'occlusion et les branches des lunettes.

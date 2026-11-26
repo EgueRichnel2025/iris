@@ -216,3 +216,17 @@ Note technique : les angles utilisent un modèle facial générique et une matri
 | 7 | Smoke test caméra réelle avec « Lunettes » sélectionné. | 25 frames reçues, aucune erreur caméra/vision, thread arrêté proprement. Le dernier échantillon ne signalait aucun visage : le placement visuel sur visage réel reste à confirmer en présence d’un visage dans le champ. |
 | 8 | Journalisation et mise à jour du backlog. | Premier accessoire marqué livré ; validation visuelle prolongée et autres accessoires restent au backlog. |
 | 9 | Publication GitHub. | À confirmer après push des commits locaux. |
+
+
+### 2026-11-26 — Amélioration géométrique des lunettes AR
+
+| # | Action | Résultat |
+| --- | --- | --- |
+| 1 | Inspection du code et du diff local existant. | Travail local préexistant préservé ; géométrie indépendante par œil et mesure de l'ouverture palpébrale conservées. |
+| 2 | Ajout de tests géométriques. | Tests de raccourcissement perspectif indépendant, rotation de l'œil, ouverture des paupières et valeurs invalides. Commit `392565b` — `test(ar): cover perspective-aware glasses geometry`. |
+| 3 | Remplacement des ellipses par des contours de lentilles. | Les lentilles sont construites à partir des coins et repères supérieurs/inférieurs des yeux, puis agrandies selon les axes locaux de chaque œil ; remplissage translucide et contour de monture polygonal. Commit `a303495` — `feat(ar): render glasses from expanded eye contours`. |
+| 4 | Validation complète. | **101 tests réussis** ; compilation Python et `git diff --check` réussis. |
+| 5 | Test caméra avec visage. | Non effectué pendant cette étape ; le dernier smoke test caméra antérieur avait reçu des frames mais aucun visage n'avait été confirmé. |
+| 6 | Publication GitHub. | À confirmer après le push des commits. |
+
+À faire ensuite : validation visuelle webcam avec visage présent, ajustement des proportions/style sur différents yaw/roll, puis amélioration de l'occlusion et des branches.
