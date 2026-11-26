@@ -643,3 +643,34 @@ Le lisseur est une brique testée mais il n'est pas encore branché au pipeline 
 
 ### Commit et publication
 Commits créés : `b19bdba` — `feat(vision): add temporal landmark smoothing` et `6922ab2` — `docs(development): record landmark smoothing milestone`. Push réussi vers `origin/main` : `ef1adb0..6922ab2 main -> main`. Vérification finale : `main` et `origin/main` pointent sur `6922ab2`, arbre de travail propre.
+
+
+## Session 2026-11-26 — Adaptateur MediaPipe Face Landmarker
+
+### Objectif
+Créer une première frontière logicielle propre entre le pipeline IRIS et MediaPipe, sans coupler la détection à la fenêtre principale ni à la caméra.
+
+### Réalisations
+- Vérification de la documentation officielle Face Landmarker et confirmation de l'usage du mode VIDEO pour les frames webcam successives.
+- Création de desktop/iris/vision/face_landmarker.py : chargement explicite du modèle local, création de la tâche VIDEO, validation des images BGR uint8, conversion RGB contiguë, contrôle des timestamps strictement croissants, extraction des coordonnées normalisées (x, y, z) et fermeture idempotente.
+- Import de MediaPipe différé jusqu'à l'ouverture du détecteur : le reste du package vision et les tests restent utilisables si la dépendance n'est pas encore installée.
+- Création de desktop/tests/test_face_landmarker.py avec un faux runtime MediaPipe afin de couvrir le contrat de l'adaptateur sans exiger le modèle ni charger le runtime natif pendant les tests unitaires.
+
+### Fichiers créés
+- desktop/iris/vision/face_landmarker.py
+- desktop/tests/test_face_landmarker.py
+
+### Validations
+| Commande | Résultat |
+| --- | --- |
+| desktop/.venv/bin/python -m pytest -q | 33 tests réussis. |
+| desktop/.venv/bin/python -m compileall -q iris tests | Réussie. |
+| git diff --check | Réussie. |
+
+### Commit
+- 93d656b — feat(vision): add MediaPipe face landmarker adapter.
+
+### En cours / limites
+- Le modèle face_landmarker.task est en cours de téléchargement dans desktop/assets/models/.
+- L'installation de MediaPipe 1.2.3 est prévue juste après ce téléchargement ; elle n'est pas encore confirmée.
+- L'adaptateur n'est pas encore relié à CameraThread ; cette intégration attend le test du runtime et du modèle réels.

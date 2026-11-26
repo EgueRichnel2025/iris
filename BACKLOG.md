@@ -12,6 +12,8 @@ L'application de référence est la version native Python située dans `desktop/
 ### P0 — Suivi facial sur desktop
 - [x] Implémenter un utilitaire de lissage temporel EMA indépendant et le couvrir par des tests unitaires.
 - [ ] Intégrer MediaPipe Face Landmarker dans le pipeline de frames de l'application desktop.
+  - [x] Créer l'adaptateur Python isolé : chargement explicite, mode VIDEO, validation des frames, extraction des landmarks et fermeture propre.
+  - [ ] Télécharger et valider le modèle local, puis tester le runtime MediaPipe réel.
 - [ ] Définir les modules de détection, landmarks, tracking et pose avec des responsabilités distinctes.
 - [ ] Ajouter le suivi temporel et le lissage des landmarks ; mesurer la stabilité et les FPS.
 - [ ] Prévoir la gestion du modèle (chargement, erreurs, fermeture propre et stratégie d'assets locaux).
@@ -85,3 +87,17 @@ L'application de référence est la version native Python située dans `desktop/
 | 10 | Vérification finale de la branche et de l’arbre de travail. | `main` synchronisée avec `origin/main`, arbre de travail propre. |
 
 La détection faciale MediaPipe n'est pas encore intégrée à la caméra : le paquet n'est pas encore installé dans l'environnement actif et le modèle `.task` manque. La prochaine tâche est de finaliser les dépendances, récupérer et versionner proprement l'asset du modèle, puis créer l'adaptateur Face Landmarker.
+
+
+### 2026-11-26 — Adaptateur MediaPipe Face Landmarker
+
+| # | Action | Résultat |
+| --- | --- | --- |
+| 1 | Vérification de la branche, du remote, du backlog et de l'environnement. | main propre et synchronisée avec origin/main ; MediaPipe absent du venv actif. |
+| 2 | Vérification de la documentation officielle Face Landmarker et de l'URL du modèle. | API Python VIDEO confirmée ; asset face_landmarker.task disponible sur Google Cloud Storage (3,58 Mio). |
+| 3 | Création de desktop/iris/vision/face_landmarker.py. | Adaptateur isolé avec chargement explicite, mode VIDEO, horodatages strictement croissants, validation des frames, conversion RGB, extraction des coordonnées normalisées et fermeture idempotente. |
+| 4 | Création de desktop/tests/test_face_landmarker.py. | Tests unitaires du cycle de vie, des entrées invalides, de la conversion BGR vers RGB, des timestamps et de l'extraction des landmarks. |
+| 5 | Validation de la suite et de la compilation. | 33 tests réussis ; compileall et git diff --check réussis. |
+| 6 | Commit de l'adaptateur et de ses tests. | 93d656b — feat(vision): add MediaPipe face landmarker adapter. |
+| 7 | Téléchargement du modèle et installation MediaPipe. | En cours ; téléchargement lent observé. L'intégration réelle à la caméra n'est pas encore déclarée terminée. |
+
