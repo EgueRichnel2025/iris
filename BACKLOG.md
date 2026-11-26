@@ -331,3 +331,24 @@ Note technique : les angles utilisent un modèle facial générique et une matri
 Qt Quick 3D est retenu comme piste de rendu à poursuivre : `RuntimeLoader` accepte glTF 2.0 `.glb` et la scène peut être composée dans un `QQuickWidget`, sans passer par le backend VTK qui segfaultait. Référence API : https://doc.qt.io/qt-6.10/qml-qtquick3d-assetutils-runtimeloader.html.
 
 Il reste à déclarer proprement `PySide6-Addons`/Qt Quick 3D dans l'extra de packaging, intégrer le widget à `MainWindow`, transmettre les frames RGB et convertir la matrice MediaPipe en position/rotation/échelle Qt Quick 3D. La caméra doit être orientée vers un visage pour valider le placement. Ne pas présenter le compositing statique comme un filtre AR temps réel terminé.
+
+
+### 2026-11-26 — Intégration initiale du compositing Qt Quick 3D dans le desktop
+
+| # | Action | Résultat |
+| --- | --- | --- |
+| 1 | Ajout de `desktop/iris/qt_quick_glasses.py`. | Nouveau widget `GlassesQuickView`: fournisseur d'images RGB en mémoire, chargement du GLB, activation du modèle et conversion de la matrice MediaPipe vers position/rotation Qt. |
+| 2 | Ajout de `desktop/iris/ui/qml/glasses_view.qml`. | Scène QML qui superpose un `View3D` transparent au flux caméra avec une caméra perspective et `RuntimeLoader`. La scène 3D suit la zone réellement peinte de l'image (aspect ratio préservé). |
+| 3 | Mise à jour de `CameraThread`. | Le rendu GLB n'utilise plus l'ancien dessin 2D des lunettes. Les autres accessoires conservent leur pipeline actuel. Les frames RGB et matrices faciales sont transmises à l'interface. |
+| 4 | Intégration dans `MainWindow`. | `QStackedWidget` bascule vers le rendu Quick 3D lorsque « Lunettes » est sélectionné et revient à l'aperçu classique pour « Aucun accessoire ». Les frames vidéo et matrices faciales sont reliées au widget. Repli vers la vue classique si Qt Quick 3D n'est pas disponible. |
+| 5 | Dépendances. | Extra `ar3d` remplacé par `PySide6-Addons==6.10.2`, `PySide6-Essentials` épinglé à `6.10.2` pour garantir la cohérence des binaires Qt. `uv lock` exécuté. |
+| 6 | Tests ciblés. | `24 passed` sur rendu, transformations faciales et caméra. |
+| 7 | Tests complets. | `132 passed in 2.01s`. `compileall` et `git diff --check` réussis. |
+| 8 | Smoke test graphique du widget. | `QQuickWidget` chargé avec `QML_STATUS Status.Ready`; capture `integrated-widget.png` montrant les lunettes GLB rectangulaires complètes sur un fond test, avec une matrice de pose synthétique (Z = -30 cm). |
+| 9 | Smoke test de la fenêtre desktop. | `MainWindow` démarre, caméra ouverte, `GlassesQuickView` présent, pile de vues = 2, sélection « Lunettes » bascule bien vers le widget 3D. Capture `main-window.png` obtenue. |
+
+### Limites restantes / validation réelle
+Le smoke test de la fenêtre indique `AUCUN VISAGE` : la caméra était ouverte mais aucun visage n'était visible dans son champ (image sombre). La pose utilisée pour vérifier l'apparence du modèle dans le widget était synthétique, pas issue d'un visage réel. Le suivi facial temps réel n'est donc PAS encore validé visuellement. Il faut orienter la webcam vers un visage puis calibrer l'orientation, le pivot, la taille et la position des lunettes sur le visage. La capture de la fenêtre a aussi révélé que le flux caméra était très sombre dans cette session ; vérifier l'exposition et le cadrage au prochain essai.
+
+### Dépendances de développement temporaires
+Les modules Qt Quick 3D et plugins Asset Importers utilisés pour le smoke test ont été extraits dans `/tmp/iris-qtquick3d` et le venv a reçu des modules Python copiés manuellement lors du diagnostic précédent. Le dépôt déclare maintenant le bon extra `ar3d`, mais un environnement propre doit être validé via `uv sync --extra ar3d --extra dev` avant de considérer le packaging terminé. Aucun de ces chemins temporaires n'est requis par le code source.

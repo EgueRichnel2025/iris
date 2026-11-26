@@ -17,6 +17,7 @@ from PySide6.QtWidgets import (
     QMainWindow,
     QPushButton,
     QSizePolicy,
+    QStackedWidget,
     QVBoxLayout,
     QWidget,
 )
@@ -24,6 +25,11 @@ from PySide6.QtWidgets import (
 from iris.accessories import ACCESSORIES
 from iris.camera import CameraThread
 from iris.effects import EFFECTS
+
+try:
+    from iris.qt_quick_glasses import GlassesQuickView
+except ImportError:
+    GlassesQuickView = None
 
 
 class MainWindow(QMainWindow):
@@ -34,9 +40,12 @@ class MainWindow(QMainWindow):
         self.resize(1380, 860)
         self.current_frame = None
         self.camera = CameraThread()
+        self.glasses_view = None
 
         self._build_interface()
         self.camera.image_ready.connect(self._show_frame)
+        self.camera.video_frame_ready.connect(self._show_video_frame)
+        self.camera.face_transform_updated.connect(self._update_glasses_pose)
         self.camera.raw_frame_ready.connect(self._remember_frame)
         self.camera.camera_ready.connect(self._camera_started)
         self.camera.camera_error.connect(self._camera_failed)
@@ -158,6 +167,7 @@ class MainWindow(QMainWindow):
         top.addWidget(self.vision_label, alignment=Qt.AlignmentFlag.AlignVCenter)
         content_layout.addLayout(top)
 
+        self.camera_stack = QStackedWidget()
         self.camera_view = QLabel("Starting your camera…")
         self.camera_view.setObjectName("cameraView")
         self.camera_view.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -165,7 +175,16 @@ class MainWindow(QMainWindow):
         self.camera_view.setSizePolicy(
             QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding
         )
-        content_layout.addWidget(self.camera_view, 1)
+        self.camera_stack.addWidget(self.camera_view)
+        if GlassesQuickView is not None:
+            try:
+                self.glasses_view = GlassesQuickView()
+                self.glasses_view.setMinimumSize(760, 470)
+                self.camera_stack.addWidget(self.glasses_view)
+            except (RuntimeError, FileNotFoundError) as exc:
+                self.vision_label.setToolTip(f"Rendu 3D indisponible : {exc}")
+                self.glasses_view = None
+        content_layout.addWidget(self.camera_stack, 1)
 
         controls = QHBoxLayout()
         self.camera_button = QPushButton("Désactiver la caméra")
@@ -205,9 +224,23 @@ class MainWindow(QMainWindow):
         self, current: QListWidgetItem | None, _previous: QListWidgetItem | None
     ) -> None:
         if current:
-            self.camera.set_accessory(
-                str(current.data(Qt.ItemDataRole.UserRole))
-            )
+            accessory = str(current.data(Qt.ItemDataRole.UserRole))
+            self.camera.set_accessory(accessory)
+            if accessory == "glasses" and self.glasses_view is not None:
+                self.glasses_view.set_glasses_enabled(True)
+                self.camera_stack.setCurrentWidget(self.glasses_view)
+            else:
+                if self.glasses_view is not None:
+                    self.glasses_view.set_glasses_enabled(False)
+                self.camera_stack.setCurrentWidget(self.camera_view)
+
+    def _show_video_frame(self, frame: object) -> None:
+        if self.glasses_view is not None and self.camera_stack.currentWidget() is self.glasses_view:
+            self.glasses_view.set_video_frame(frame)
+
+    def _update_glasses_pose(self, matrix: object) -> None:
+        if self.glasses_view is not None:
+            self.glasses_view.set_face_transform(matrix)
 
     def _show_frame(self, image: QImage) -> None:
         pixmap = QPixmap.fromImage(image).scaled(
@@ -229,6 +262,7 @@ class MainWindow(QMainWindow):
     def _camera_failed(self, message: str) -> None:
         self.status_label.setText("CAMÉRA INDISPONIBLE")
         self.camera_view.setText(message)
+        self.camera_stack.setCurrentWidget(self.camera_view)
         self.capture_button.setEnabled(False)
         self.camera_button.setText("Réessayer")
 
@@ -260,6 +294,9 @@ class MainWindow(QMainWindow):
             self.capture_button.setEnabled(False)
             self.camera_view.clear()
             self.camera_view.setText("Caméra désactivée")
+            self.camera_stack.setCurrentWidget(self.camera_view)
+            if self.glasses_view is not None:
+                self.glasses_view.set_face_transform(None)
             self.status_label.setText("CAMÉRA EN PAUSE")
             self.vision_label.setText("SUIVI EN PAUSE")
             self.pose_label.setText("POSE EN PAUSE")

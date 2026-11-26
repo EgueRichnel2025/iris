@@ -111,14 +111,17 @@ class CameraThread(QThread):
                     timestamp_ms = time.monotonic_ns() // 1_000_000
                     try:
                         vision_result = vision_pipeline.process(frame, timestamp_ms)
-                        try:
-                            frame = apply_accessory(
-                                frame, self._accessory, vision_result.smoothed_faces
-                            )
-                        except (ValueError, cv2.error) as exc:
-                            self.vision_error.emit(
-                                f"Accessoire indisponible : {exc}"
-                            )
+                        # The GLB glasses are rendered in the GUI thread by Qt Quick 3D.
+                        # Keep the legacy 2D path for other accessories only.
+                        if self._accessory != "glasses":
+                            try:
+                                frame = apply_accessory(
+                                    frame, self._accessory, vision_result.smoothed_faces
+                                )
+                            except (ValueError, cv2.error) as exc:
+                                self.vision_error.emit(
+                                    f"Accessoire indisponible : {exc}"
+                                )
                         self.face_count_updated.emit(vision_result.face_count)
                         matrices = getattr(vision_result, "facial_transformation_matrices", ())
                         self.face_transform_updated.emit(matrices[0].copy() if matrices else None)

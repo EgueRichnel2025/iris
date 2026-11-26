@@ -174,7 +174,7 @@ def test_camera_resets_pose_when_face_disappears(monkeypatch):
     assert pose_estimator.calls == []
     assert pipeline.closed
     assert capture.released
-def test_camera_applies_selected_accessory_to_each_detected_frame(monkeypatch):
+def test_camera_skips_legacy_glasses_overlay_for_qt_quick_3d(monkeypatch):
     capture = FakeCapture()
     pipeline = FakeVisionPipeline()
     applied = []
@@ -195,7 +195,7 @@ def test_camera_applies_selected_accessory_to_each_detected_frame(monkeypatch):
     camera.set_accessory("glasses")
     camera.run()
 
-    assert applied == [("glasses", 1), ("glasses", 1)]
+    assert applied == []
     assert pipeline.closed
     assert capture.released
 
