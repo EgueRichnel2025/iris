@@ -729,3 +729,26 @@ Préparer une représentation en pixels utilisable par le rendu d'accessoires et
 
 ### Commit
 - ff02bf3 — feat(vision): resolve local face model asset path.
+
+
+## Session 2026-11-26 — Pipeline vision indépendant
+
+### Objectif
+Assembler la détection et le lissage temporel dans une couche vision dédiée, distincte de MainWindow et de CameraThread.
+
+### Réalisations
+- Création de desktop/iris/vision/pipeline.py avec FaceVisionPipeline et VisionFrameResult.
+- Un lisseur EMA indépendant est utilisé par visage.
+- Quand aucun visage n'est détecté, l'historique de lissage est réinitialisé afin que la réacquisition reparte sur les nouvelles coordonnées sans traîner l'ancienne position.
+- Le pipeline gère son cycle de vie sans dépendre directement du runtime MediaPipe ; un détecteur injectable permet des tests rapides et déterministes.
+
+### Fichiers créés
+- desktop/iris/vision/pipeline.py
+- desktop/tests/test_vision_pipeline.py
+
+### Validations
+- desktop/.venv/bin/python -m pytest -q : 51 tests réussis.
+- compileall et git diff --check : réussis.
+
+### Commit
+- 3bf99b9 — feat(vision): compose face detection and landmark smoothing.

@@ -15,7 +15,7 @@ L'application de référence est la version native Python située dans `desktop/
   - [x] Créer l'adaptateur Python isolé : chargement explicite, mode VIDEO, validation des frames, extraction des landmarks et fermeture propre.
   - [x] Télécharger le modèle local officiel et vérifier son SHA-256.
   - [ ] Installer et tester le runtime MediaPipe réel.
-- [ ] Définir les modules de détection, landmarks, tracking et pose avec des responsabilités distinctes.
+- [x] Définir une première composition détection + lissage dans un pipeline vision indépendant de l'UI.
 - [ ] Ajouter le suivi temporel et le lissage des landmarks ; mesurer la stabilité et les FPS.
 - [ ] Prévoir la gestion du modèle (chargement, erreurs, fermeture propre et stratégie d'assets locaux).
 
@@ -133,3 +133,13 @@ La détection faciale MediaPipe n'est pas encore intégrée à la caméra : le p
 | 2 | Création de desktop/tests/test_model_assets.py. | Tests des chemins source et bundle. |
 | 3 | Validation. | 46 tests réussis ; compilation et git diff --check réussis. |
 | 4 | Commit. | ff02bf3 — feat(vision): resolve local face model asset path. |
+
+
+### 2026-11-26 — Pipeline vision indépendant
+
+| # | Action | Résultat |
+| --- | --- | --- |
+| 1 | Création de desktop/iris/vision/pipeline.py. | Composition du détecteur et d'un lisseur EMA par visage ; perte de visage = remise à zéro de l'historique. |
+| 2 | Création de desktop/tests/test_vision_pipeline.py. | Tests du cycle de vie, du lissage, de la perte/réacquisition et des paramètres. |
+| 3 | Validation. | 51 tests réussis ; compilation et git diff --check réussis. |
+| 4 | Commit. | 3bf99b9 — feat(vision): compose face detection and landmark smoothing. |
