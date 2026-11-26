@@ -884,3 +884,43 @@ La pose utilise un modèle facial générique à six points et une matrice camé
 
 ### Prochaine étape
 Ajouter un premier accessoire 2D (lunettes) ancré sur les landmarks des yeux, puis stabiliser sa position, son échelle et sa rotation à partir de la pose de tête. Les déformations de bouche et de visage viendront après ce socle AR.
+
+
+## Session 2026-11-26 — Premier accessoire AR : lunettes
+
+### Objectif
+Créer un premier accessoire 2D ancré aux landmarks des yeux, le rendre sélectionnable dans l’application et le traiter dans le thread caméra sans déplacer la logique vision dans l’interface.
+
+### Réalisations
+- Création de `desktop/iris/vision/glasses.py` avec `GlassesStyle` et `draw_glasses` : verres elliptiques teintés, contours, pont nasal et branches. Les centres, dimensions et rotations proviennent des landmarks des coins des yeux MediaPipe (33, 133, 263, 362).
+- Le rendu accepte les landmarks 2D/3D et travaille sur une copie de la frame. Les landmarks proviennent du pipeline déjà lissé, ce qui stabilise l’ancrage image par image.
+- Création de `desktop/iris/accessories.py` comme catalogue et routeur des accessoires.
+- Ajout du sélecteur « AR ACCESSORIES » dans `MainWindow`. L’interface transmet uniquement le choix à `CameraThread`; le rendu reste dans la couche traitement caméra/vision.
+- Intégration de `apply_accessory` dans `CameraThread`, avant le filtre couleur et l’affichage.
+- Ajout de tests dédiés au rendu, au catalogue et au chemin d’intégration caméra.
+
+### Fichiers créés ou modifiés
+- `desktop/iris/vision/glasses.py`
+- `desktop/iris/accessories.py`
+- `desktop/iris/camera.py`
+- `desktop/iris/main_window.py`
+- `desktop/tests/test_glasses.py`
+- `desktop/tests/test_accessories.py`
+- `desktop/tests/test_camera_vision.py`
+
+### Validations
+| Vérification | Résultat |
+| --- | --- |
+| Suite pytest desktop | 97 tests réussis. |
+| `compileall iris tests` | Réussi. |
+| `git diff --check` | Réussi. |
+| Smoke test `CameraThread` avec lunettes sélectionnées | 25 frames reçues ; aucune erreur caméra/vision ; arrêt propre. |
+| Détection de visage pendant ce smoke test | Aucun visage confirmé dans le dernier échantillon ; le placement visuel sur visage réel reste à vérifier avec un visage présent dans le champ. |
+
+### Commits de code
+- `65de655` — `feat(ar): render face-anchored glasses`.
+- `c175b9d` — `feat(camera): integrate selectable AR accessories`.
+- `1000738` — `test(camera): cover AR accessory frame integration`.
+
+### État et suite
+Le premier accessoire est intégré et sélectionnable. Sa géométrie suit les landmarks des yeux lissés. Il reste à effectuer un contrôle visuel en mouvement avec un visage dans le champ, puis à améliorer le rendu (monture plus réaliste, occlusion/ajustement en yaw) et ajouter chapeaux et oreilles.

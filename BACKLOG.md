@@ -21,8 +21,8 @@ L'application de référence est la version native Python située dans `desktop/
 - [x] Estimer la pose de tête (yaw, pitch, roll) depuis six landmarks stables et publier les angles en temps réel.
 
 ### P1 — Effets AR 2D
-- [ ] Ajouter des accessoires ancrés au visage (lunettes, chapeaux, oreilles, etc.).
-- [ ] Stabiliser leur position, leur échelle et leur rotation pendant les mouvements de tête.
+- [x] Ajouter un premier accessoire ancré au visage (lunettes) ; chapeaux et oreilles restent à faire.
+- [x] Exploiter les landmarks lissés pour stabiliser la position, l’échelle et la rotation des lunettes ; validation visuelle prolongée en mouvement encore à effectuer.
 - [ ] Prévoir une sélection et un aperçu des effets.
 
 ### P2 — Déformations faciales
@@ -201,3 +201,18 @@ La détection faciale MediaPipe n'est pas encore intégrée à la caméra : le p
 | 9 | Publication GitHub. | À confirmer après le push du jalon. |
 
 Note technique : les angles utilisent un modèle facial générique et une matrice intrinsèque approximative (focale estimée à partir de la largeur de l'image). C'est une estimation d'orientation pour stabiliser les accessoires, pas encore une mesure métrique calibrée de la caméra.
+
+
+### 2026-11-26 — Premier accessoire AR : lunettes
+
+| # | Action | Résultat |
+| --- | --- | --- |
+| 1 | Inspection de la branche et du travail local. | `main` était propre mais en avance de trois commits sur `origin/main` ; les trois commits AR étaient présents localement. |
+| 2 | Création du rendu des lunettes dans `desktop/iris/vision/glasses.py`. | Deux verres elliptiques teintés, monture, pont nasal et branches calculés à partir des landmarks des coins des yeux ; la frame d’entrée n’est pas modifiée. |
+| 3 | Ajout des tests du rendu. | Tests de géométrie, transparence, landmarks 2D/3D et validation des entrées. Commit `65de655` — `feat(ar): render face-anchored glasses`. |
+| 4 | Ajout du catalogue d’accessoires et intégration à l’application. | Sélecteur « Lunettes » dans la sidebar ; `CameraThread` applique l’accessoire aux landmarks lissés. Commit `c175b9d` — `feat(camera): integrate selectable AR accessories`. |
+| 5 | Couverture du chemin caméra. | Test vérifiant que l’accessoire sélectionné est appliqué à chaque frame détectée. Commit `1000738` — `test(camera): cover AR accessory frame integration`. |
+| 6 | Suite de tests et compilation. | **97 tests réussis** ; `compileall` et `git diff --check` réussis. |
+| 7 | Smoke test caméra réelle avec « Lunettes » sélectionné. | 25 frames reçues, aucune erreur caméra/vision, thread arrêté proprement. Le dernier échantillon ne signalait aucun visage : le placement visuel sur visage réel reste à confirmer en présence d’un visage dans le champ. |
+| 8 | Journalisation et mise à jour du backlog. | Premier accessoire marqué livré ; validation visuelle prolongée et autres accessoires restent au backlog. |
+| 9 | Publication GitHub. | À confirmer après push des commits locaux. |
