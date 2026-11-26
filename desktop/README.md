@@ -1,56 +1,76 @@
 # IRIS Desktop
 
-IRIS is a local desktop camera application for real-time visual filters and face effects.
+The active native application for real-time camera filters and facial effects.
 
-## Current MVP
+## Technology stack
 
-- Desktop interface built with PySide6.
+| Area | Technologies | Responsibility |
+| --- | --- | --- |
+| Runtime | Python 3.12+ | Application logic |
+| Desktop UI | PySide6 Essentials | Native interface and camera preview |
+| Camera & computer vision | OpenCV | Webcam acquisition, frame conversion and image operations |
+| Image processing | NumPy, OpenCV | Array operations and visual effects |
+| Face analysis | MediaPipe | Dependency declared; desktop integration is planned |
+| Packaging | PyInstaller | Standalone application builds |
+| Testing | pytest | Automated desktop tests |
+| Dependency management | uv | Environment and dependency synchronisation |
+
+## Current features
+
+- Native desktop interface built with PySide6.
 - Live camera preview powered by OpenCV.
-- Local image effects: Original, Warm, Cool, Noir, Vivid and Soft Focus.
-- Photo capture saved to the user's Pictures/IRIS folder.
-- Camera processing stays on the device.
+- Real-time image effects: Original, Warm, Cool, Noir, Vivid and Soft Focus.
+- Camera pause and restart controls with an FPS display.
+- Local photo capture in the user's `Pictures/IRIS` folder.
+- Camera frames are processed on the device.
 
 ## Run from source
+
+Requirements: Python 3.12+ (below 3.15) and [uv](https://docs.astral.sh/uv/).
 
 From the repository root:
 
 ```bash
 cd desktop
 uv sync --extra dev
+uv run iris
+```
+
+To launch the Python module directly:
+
+```bash
 uv run --no-sync python -m iris
 ```
 
-Alternatively, after activating the environment:
+## Run the tests
 
 ```bash
-python -m iris
-```
-
-## Checks
-
-```bash
-uv run --no-sync pytest
+uv run pytest
 ```
 
 ## Build a standalone application
 
-On Linux:
-
+**Linux**
 ```bash
 ./build.sh
 ```
 
-On Windows PowerShell:
-
+**Windows PowerShell**
 ```powershell
 .\build.ps1
 ```
 
-PyInstaller builds for the operating system on which it runs. Run the PowerShell script on Windows to produce the Windows executable.
+PyInstaller builds for the operating system on which it runs. Run the PowerShell script on Windows to produce a Windows executable.
 
-## Build output
+### Build output
 
 - Linux: `dist/IRIS/IRIS`
 - Windows: `dist/IRIS/IRIS.exe`
 
 The current validated build is the Linux bundle. The Windows PowerShell build script must be run on a Windows machine.
+
+## Related documentation
+
+- [Main project README](../README.md)
+- [Desktop implementation plan](../docs/requirements/IRIS_DESKTOP_PLAN.md)
+- [Development log](../docs/development/DEVELOPMENT_LOG.md)
