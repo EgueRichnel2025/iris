@@ -259,3 +259,20 @@ Note technique : les angles utilisent un modèle facial générique et une matri
 | 7 | Commits. | `c1e7d48` validation GLB ; `7c0c6a1` chargeur VTK ; `2c45f5d` dépendance optionnelle. Publication à vérifier. |
 
 **Limites restantes :** scène 3D statique validée, mais non encore raccordée à la caméra ou à la matrice MediaPipe. Le repère du modèle (orientation, pivot, échelle) reste à calibrer ; l'occlusion et le suivi temps réel ne sont pas encore réalisés.
+
+
+### 2026-11-26 — Conversion de la pose MediaPipe vers le modèle GLB
+
+| # | Action | Résultat |
+| --- | --- | --- |
+| 1 | Capture d'une matrice faciale sur webcam réelle. | 1 visage et 1 matrice 4×4 détectés sur une frame 640×480 ; translations observées en coordonnées faciales/caméra (ex. environ -2,6 / -8,4 / -26,4). |
+| 2 | Inspection de la géométrie GLB. | Dimensions mesurées par VTK : largeur 14,56 cm, hauteur 4,60 cm, branches jusqu'à 14,13 cm en profondeur ; sommets stockés en mètres. |
+| 3 | Création de `desktop/iris/vision/face_transform.py`. | Conversion explicite GLB mètres → espace MediaPipe centimètres, multiplication `M_face @ S_model`, validation de matrice affine et des valeurs finies. |
+| 4 | Propagation des matrices dans le pipeline. | `VisionFrameResult` conserve les matrices faciales ; aucune matrice propagée quand le visage est perdu. |
+| 5 | Signal caméra → GUI. | Nouveau signal `face_transform_updated(object)` émet une copie de la première matrice ou `None`, sans manipuler VTK dans le thread caméra. |
+| 6 | Cycle de vie Qt/VTK. | Initialisation VTK différée après affichage du widget ; la mise à jour de l'acteur n'appelle pas Render sur un widget non initialisé. |
+| 7 | Tests. | **126 tests réussis** ; compilation et `git diff --check` réussis. 14 nouveaux tests de conversion/acteur/pipeline/caméra/cycle de vie. |
+| 8 | Test visuel webcam + widget VTK. | Non validé : le test combiné webcam/Qt/VTK a échoué avec X11 `BadWindow` dans l'environnement de test. Aucun screenshot de lunettes portées par le visage n'est revendiqué. Le signal de matrice et l'application de la matrice à un acteur VTK non rendu sont testés. |
+| 9 | Commits. | Conversion, tests, propagation pipeline, signal caméra et cycle de vie VTK publiés localement ; push à effectuer/contrôler. |
+
+**Limite actuelle :** l'interface principale affiche toujours le flux caméra dans un QLabel et n'héberge pas encore le widget 3D. Le modèle n'est donc pas encore superposé à l'image. La matrice MediaPipe est désormais disponible côté GUI, mais le repère exact, le cadrage caméra, l'occlusion et le rendu composite restent à valider.

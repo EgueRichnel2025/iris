@@ -1036,3 +1036,46 @@ Charger réellement l'asset GLB dans un widget 3D intégré à l'application PyS
 
 ### Limites / suite
 La scène statique charge et rend le GLB dans un widget Qt. Elle n'est pas encore connectée à `CameraThread`, ne suit pas la matrice faciale MediaPipe et ne gère pas encore l'occlusion. Prochaine étape : intégrer ce widget à l'interface sans remplacer prématurément l'aperçu caméra, définir/calibrer le repère du modèle, puis piloter l'acteur avec la transformation faciale et vérifier le résultat sur webcam.
+
+
+## Session 2026-11-26 — Ancrage mathématique du GLB à la pose faciale
+
+### Inspection et mesures
+- Inspection de `CameraThread`, `FaceVisionPipeline`, `FaceLandmarker`, `MainWindow` et des tests existants.
+- Test réel de `FaceLandmarker` sur la webcam : image 640×480, un visage détecté, une matrice 4×4 retournée. Exemple de translation observée : (-2,57, -8,41, -26,39), cohérente avec un espace facial/caméra en centimètres.
+- Inspection de la géométrie chargée par `vtkGLTFReader` : largeur totale ≈ 0,1456 m, hauteur ≈ 0,046 m, profondeur des branches ≈ 0,1413 m. Le modèle GLB est exprimé en mètres.
+
+### Implémentation
+- `desktop/iris/vision/face_transform.py` : validation stricte de la matrice 4×4 (finitude, dernière ligne affine), validation du facteur d'unité, conversion `M_actor = M_face @ diag(100,100,100,1)` pour passer des mètres GLB aux centimètres MediaPipe.
+- Fonction `apply_face_transform` : conversion vers `vtkMatrix4x4`, puis `SetUserMatrix` sur l'acteur. Le rendu est déclenché uniquement si la scène VTK a été initialisée. L'appel doit être effectué sur le thread GUI Qt, jamais dans le worker caméra.
+- `VisionFrameResult` conserve désormais `facial_transformation_matrices` issues du détecteur. Les matrices sont vidées quand aucun visage n'est présent.
+- `CameraThread` émet `face_transform_updated(object)` avec une copie de la matrice faciale ou `None`. Le thread caméra ne manipule aucun objet VTK.
+- `Glasses3DScene` possède un état `initialized` ; l'initialisation du contexte VTK est reportée à `initialize_glasses_3d_scene` pour attendre l'affichage du widget Qt.
+
+### Validation
+- Webcam : matrice faciale réellement récupérée.
+- Tests ciblés : 33 tests réussis avant ajout du test final d'application VTK.
+- Suite complète finale : **126 tests réussis**.
+- `compileall iris tests` : réussi.
+- `git diff --check` : réussi.
+- Tentative de test visuel combiné QVTK + webcam : échec X11 `BadWindow`. Le problème de cycle de vie a conduit à différer l'initialisation du widget après affichage, mais le smoke test graphique n'a pas été validé ensuite. Pas de preuve visuelle d'un alignement correct sur le visage.
+
+### Fichiers modifiés/créés
+- `desktop/iris/vision/face_transform.py` (nouveau)
+- `desktop/iris/vision/pipeline.py`
+- `desktop/iris/vision/glasses_3d.py`
+- `desktop/iris/camera.py`
+- `desktop/tests/test_face_transform.py` (nouveau)
+- `desktop/tests/test_vision_pipeline.py`
+- `desktop/tests/test_camera_vision.py`
+- `desktop/tests/test_glasses_3d_asset.py`
+
+### Commits
+- `feat(ar): map facial pose to GLB model coordinates`
+- `test(ar): cover facial matrix and GLB unit conversion`
+- `feat(vision): preserve facial transformation matrices`
+- `feat(camera): publish facial transforms to the UI thread`
+- `fix(ar): initialize VTK after Qt widget is shown`
+
+### Limites et suite
+Le flux caméra de `MainWindow` reste rendu dans un QLabel. Le widget 3D n'est pas encore intégré en superposition au flux ; aucun rendu « lunettes portées » n'a été validé visuellement. Prochaine étape : mettre en place une surface de rendu compositée compatible avec le contexte graphique de la machine, connecter `face_transform_updated` au thread GUI, puis régler pivot/axes/échelle et occlusion sur la webcam.
