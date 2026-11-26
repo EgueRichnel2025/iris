@@ -997,3 +997,42 @@ Remplacer à terme le dessin OpenCV des lunettes par un vrai asset 3D, aligné s
 
 ### Limitation et prochaine étape
 Aucun rendu 3D n'est encore branché à `CameraThread`. Le GLB est acquis et la matrice faciale est disponible, mais il faut encore sélectionner et valider un moteur de rendu glTF/GLB compatible avec l'architecture PySide6 et le flux caméra. Il faudra ensuite calibrer le repère local du modèle (échelle, axes, pivot) et gérer l'occlusion du visage. Ne pas annoncer l'accessoire 3D comme fonctionnel avant validation visuelle sur webcam.
+
+
+## Session 2026-11-26 — Première scène 3D GLB intégrée à Qt
+
+### Objectif
+Charger réellement l'asset GLB dans un widget 3D intégré à l'application PySide6, avant toute connexion au flux caméra.
+
+### Choix du moteur
+- Qt Quick 3D a été évalué, mais les bindings `PySide6-Addons==6.10.2` représentent environ 163 Mo de téléchargement et le transfert est resté bloqué sans progression exploitable. Le processus a été interrompu.
+- VTK 9.5.2 est déjà disponible sur la machine et fournit `vtkGLTFReader` ainsi que `QVTKRenderWindowInteractor`, ce dernier compatible avec PySide6 (`QT_API=pyside6`).
+- `vtkGLTFReader` a correctement chargé le fichier `rectangular-acetate-glasses.glb` et renvoyé un bloc de géométrie. VTK affiche un avertissement : l'extension glTF `KHR_materials_specular` n'est pas prise en charge et est ignorée.
+- Le rendu VTK hors écran direct a provoqué un segfault ; le test retenu passe par `QVTKRenderWindowInteractor` dans une fenêtre Qt, où l'initialisation, le rendu et la capture PNG ont réussi.
+
+### Implémentation
+- Nouveau module `desktop/iris/vision/glasses_3d.py` : validation du conteneur GLB 2.0, lecture du chunk JSON, vérification de la présence de meshes, puis création d'une scène VTK intégrée à Qt.
+- Nouveau type `Glasses3DScene` conserve le widget, le renderer, le lecteur GLTF et l'acteur pour assurer leur durée de vie.
+- Nouvelle erreur `Glasses3DAssetError` pour les assets manquants, tronqués ou invalides.
+- Dépendance VTK isolée dans l'extra facultatif `ar3d` : `vtk>=9.5.2,<9.6`. Le socle d'installation IRIS ne récupère donc pas automatiquement VTK. `uv.lock` actualisé.
+- Six tests unitaires couvrent les en-têtes GLB, la taille déclarée, la version, le chunk JSON et les meshes.
+
+### Validation
+- Smoke test PySide6 + VTK : scène GLB créée et affichée dans `QVTKRenderWindowInteractor`, capture `/tmp/iris-glasses-scene-smoke.png` enregistrée.
+- `pytest -q` : **108 tests réussis**.
+- `compileall iris tests` : réussi.
+- `git diff --check` : réussi.
+
+### Fichiers créés/modifiés
+- `desktop/iris/vision/glasses_3d.py`
+- `desktop/tests/test_glasses_3d_asset.py`
+- `desktop/pyproject.toml`
+- `desktop/uv.lock`
+
+### Commits
+- `c1e7d48` — `test(ar): validate binary glTF accessory assets`.
+- `7c0c6a1` — `feat(ar): add VTK glTF accessory scene loader`.
+- `2c45f5d` — `build(ar): add optional VTK rendering dependencies`.
+
+### Limites / suite
+La scène statique charge et rend le GLB dans un widget Qt. Elle n'est pas encore connectée à `CameraThread`, ne suit pas la matrice faciale MediaPipe et ne gère pas encore l'occlusion. Prochaine étape : intégrer ce widget à l'interface sans remplacer prématurément l'aperçu caméra, définir/calibrer le repère du modèle, puis piloter l'acteur avec la transformation faciale et vérifier le résultat sur webcam.

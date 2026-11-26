@@ -244,3 +244,18 @@ Note technique : les angles utilisent un modèle facial générique et une matri
 | 6 | Publication des changements de code et de l'asset. | Commits `ed8cadf`, `87389b6`, `24754d5` ; push à effectuer/contrôler. |
 
 **Important :** le modèle 3D est maintenant présent dans le dépôt et MediaPipe expose la transformation faciale, mais l'accessoire 3D n'est pas encore affiché dans la caméra. L'ancien rendu 2D polygonal reste le rendu sélectionnable tant que le moteur 3D n'est pas prêt. Prochaine tâche bloquante : choisir et valider un renderer glTF/GLB compatible PySide6 et le pipeline caméra, puis aligner le modèle (échelle, axes, pivot) sur la matrice faciale et vérifier l'occlusion.
+
+
+### 2026-11-26 — Première scène 3D GLB dans Qt
+
+| # | Action | Résultat |
+| --- | --- | --- |
+| 1 | Diagnostic Qt Quick 3D. | `PySide6-Addons==6.10.2` nécessite un téléchargement d'environ 163 Mo, qui ne progressait pas ; processus interrompu. Aucun module Qt Quick/Qt Quick 3D installé. |
+| 2 | Essai du lecteur glTF VTK. | `vtkGLTFReader` lit le GLB correctement (1 bloc de géométrie). L'extension glTF `KHR_materials_specular` n'est pas prise en charge par VTK et est ignorée. |
+| 3 | Validation Qt + VTK. | `QVTKRenderWindowInteractor` s'intègre à une fenêtre PySide6 ; affichage de la scène et capture PNG réussis. Le rendu offscreen VTK direct a provoqué un segfault ; la voie retenue utilise le widget Qt. |
+| 4 | Création du chargeur 3D. | `desktop/iris/vision/glasses_3d.py` valide le GLB, charge sa géométrie et crée un widget VTK intégré à Qt. |
+| 5 | Dépendance facultative. | Extra `ar3d = ["vtk>=9.5.2,<9.6"]` ajouté ; VTK n'est pas imposé aux installations sans accessoires 3D. |
+| 6 | Tests. | 6 nouveaux tests GLB ; suite complète **108 tests réussis** ; compilation et `git diff --check` réussis. |
+| 7 | Commits. | `c1e7d48` validation GLB ; `7c0c6a1` chargeur VTK ; `2c45f5d` dépendance optionnelle. Publication à vérifier. |
+
+**Limites restantes :** scène 3D statique validée, mais non encore raccordée à la caméra ou à la matrice MediaPipe. Le repère du modèle (orientation, pivot, échelle) reste à calibrer ; l'occlusion et le suivi temps réel ne sont pas encore réalisés.
