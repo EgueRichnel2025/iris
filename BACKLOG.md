@@ -352,3 +352,17 @@ Le smoke test de la fenêtre indique `AUCUN VISAGE` : la caméra était ouverte 
 
 ### Dépendances de développement temporaires
 Les modules Qt Quick 3D et plugins Asset Importers utilisés pour le smoke test ont été extraits dans `/tmp/iris-qtquick3d` et le venv a reçu des modules Python copiés manuellement lors du diagnostic précédent. Le dépôt déclare maintenant le bon extra `ar3d`, mais un environnement propre doit être validé via `uv sync --extra ar3d --extra dev` avant de considérer le packaging terminé. Aucun de ces chemins temporaires n'est requis par le code source.
+
+### 2026-11-27 — Stabilisation du runtime Qt Quick 3D
+
+| # | Action | Résultat |
+| --- | --- | --- |
+| 1 | Vérification du dépôt, du backlog, de l'environnement et des modules réellement importables. | `main` était propre et synchronisée ; les 132 tests passent. Les bindings QtQuick3D seuls ne suffisaient pas : `libQt6Quick3D.so.6` et plusieurs composants natifs manquaient. |
+| 2 | Diagnostic du runtime Ubuntu Qt 6.10.2. | Les paquets nécessaires sont disponibles en petits paquets apt ; aucun besoin de télécharger le wheel PySide6-Addons de plus de 160 Mo. |
+| 3 | Extraction temporaire des bibliothèques Qt Quick 3D et des modules QML. | Imports Python Quick3D et QML `Status.Ready` validés en isolant `LD_LIBRARY_PATH`, `QML2_IMPORT_PATH` et `QT_PLUGIN_PATH`. |
+| 4 | Installation du plugin d'import glTF/GLB Assimp. | `RuntimeLoader` a d'abord signalé `Unsupported`; après ajout de `qt6-quick3d-assetimporters-plugin`, le GLB est chargé avec `RuntimeLoader.Success`. |
+| 5 | Préparation d'une installation locale reproductible. | Ajout de `desktop/scripts/install_qt_quick3d_runtime.sh` et `desktop/run.sh` ; aucun privilège administrateur requis. |
+| 6 | Allègement de l'extra Python AR. | `ar3d` ne déclenche plus le téléchargement du wheel PySide6-Addons ; les bindings et bibliothèques Qt natifs sont préparés par le script local. |
+| 7 | Documentation. | `desktop/README.md` décrit désormais la procédure de préparation et le lanceur dédié au rendu GLB. |
+
+**Validation importante :** QML `Status.Ready` et chargement GLB `RuntimeLoader.Success` confirmés avec les composants extraits dans `/tmp`. Le lancement de l'application complète avec l'installation persistante et le suivi sur visage réel reste à valider avant de marquer le rendu AR comme terminé.

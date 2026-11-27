@@ -16,9 +16,7 @@ dev = [
   "pyinstaller>=6.22.3,<7",
   "pytest>=9,<10",
 ]
-ar3d = [
-  "PySide6-Addons==6.10.2",
-]
+ar3d = []  # Installed by scripts/install_qt_quick3d_runtime.sh on Ubuntu/Debian.
 
 [project.scripts]
 iris = "iris.__main__:main"

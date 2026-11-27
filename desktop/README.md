@@ -8,6 +8,7 @@ The active native application for real-time camera filters and facial effects.
 | --- | --- | --- |
 | Runtime | Python 3.12+ | Application logic |
 | Desktop UI | PySide6 Essentials | Native interface and camera preview |
+| 3D accessories | Qt Quick 3D + RuntimeLoader | GLB model rendering and camera compositing |
 | Camera & computer vision | OpenCV | Webcam acquisition, frame conversion and image operations |
 | Image processing | NumPy, OpenCV | Array operations and visual effects |
 | Face analysis | MediaPipe Face Landmarker | 478 facial landmarks, VIDEO-mode tracking and temporal smoothing |
@@ -28,24 +29,24 @@ The active native application for real-time camera filters and facial effects.
 - Temporal EMA smoothing to reduce landmark jitter.
 - Face detection runs in the camera thread; the UI only displays its status.
 - Live head orientation estimate (yaw, pitch and roll) displayed separately from the camera status.
+- A real GLB glasses model rendered through Qt Quick 3D and composited over the live camera feed (Linux runtime setup required).
 
 ## Run from source
 
 Requirements: Python 3.12+ (below 3.15) and [uv](https://docs.astral.sh/uv/).
 
-From the repository root:
+From the repository root on Ubuntu/Debian:
 
 ```bash
 cd desktop
 uv sync --extra dev
-uv run iris
+./scripts/install_qt_quick3d_runtime.sh
+./run.sh
 ```
 
-To launch the Python module directly:
+The Qt Quick 3D setup downloads only the matching Ubuntu runtime packages (a few megabytes), extracts them into the user's local data directory, and does not require administrator privileges. The launcher sets the native library, QML module and plugin paths automatically. The `ar3d` extra is intentionally empty: using the 160+ MB PySide6-Addons wheel is unnecessary on this Linux setup.
 
-```bash
-uv run --no-sync python -m iris
-```
+For a non-AR development session, the regular entry point remains available with `uv run iris`; use `./run.sh` for the full GLB glasses renderer.
 
 ## Run the tests
 

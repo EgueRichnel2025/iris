@@ -1172,3 +1172,41 @@ Le smoke test de la fenêtre indique `AUCUN VISAGE` : la caméra était ouverte 
 
 ### Dépendances de développement temporaires
 Les modules Qt Quick 3D et plugins Asset Importers utilisés pour le smoke test ont été extraits dans `/tmp/iris-qtquick3d` et le venv a reçu des modules Python copiés manuellement lors du diagnostic précédent. Le dépôt déclare maintenant le bon extra `ar3d`, mais un environnement propre doit être validé via `uv sync --extra ar3d --extra dev` avant de considérer le packaging terminé. Aucun de ces chemins temporaires n'est requis par le code source.
+
+## Session 2026-11-27 — Diagnostic et installation locale Qt Quick 3D
+
+### Diagnostic
+- Dépôt initial : branche `main`, HEAD `987aa6a`, synchronisée avec `origin/main`, arbre propre.
+- Environnement : Python 3.14.4, MediaPipe 1.2.3, OpenCV 4.10.0, NumPy 2.3.5 ; les 132 tests existants passent.
+- Les bindings QtQuick/QtQml étaient présents, mais `from PySide6.QtQuick3D import ...` échouait avec `libQt6Quick3D.so.6: cannot open shared object file`.
+- Les paquets Qt Quick 3D Ubuntu 6.10.2 ont été téléchargés et extraits sous `/tmp` pour diagnostiquer les bibliothèques et plugins manquants. Aucun paquet système n'a été installé et aucun `sudo` n'a été utilisé.
+- L'import Python Quick3D fonctionne en ajoutant les bibliothèques natives au `LD_LIBRARY_PATH` et le module Python QtQuick3D au venv.
+- Le premier chargement GLB renvoyait `Unsupported: Unknown error` car le plugin d'import Assimp manquait. Après extraction de `qt6-quick3d-assetimporters-plugin`, le QML est `Status.Ready` et `RuntimeLoader` atteint `Success` avec `rectangular-acetate-glasses.glb`.
+
+### Changements de code et d'installation
+- Ajout de `desktop/scripts/install_qt_quick3d_runtime.sh` : télécharge et extrait les petits paquets Qt 6.10.2 dans `$XDG_DATA_HOME/iris/qt6-runtime` ou `~/.local/share/iris/qt6-runtime`, sans droits administrateur, puis installe le binding Python dans le venv.
+- Ajout de `desktop/run.sh` : prépare `LD_LIBRARY_PATH`, `QML2_IMPORT_PATH` et `QT_PLUGIN_PATH` avant de lancer `python -m iris`.
+- `desktop/pyproject.toml` : l'extra `ar3d` devient vide afin d'éviter le téléchargement inutile de PySide6-Addons (wheel >160 Mo) ; le runtime Qt natif est géré par le script Linux dédié.
+- `desktop/uv.lock` régénéré en mode offline ; le package `pyside6-addons` est retiré du lock.
+- `desktop/README.md` et `BACKLOG.md` mis à jour avec la nouvelle procédure.
+
+### Validations
+- Suite desktop : `132 passed in 0.93s` avant les changements d'installation.
+- `uv lock --offline` et `uv lock --check` : réussis.
+- `bash -n` sur les scripts : réussi.
+- Smoke test Qt Quick 3D Python : import réussi.
+- Smoke test QML : `Status.Ready`, aucune erreur QML.
+- Smoke test GLB : `RuntimeLoader.Success`, `GLB_LOADED True` après ajout du plugin Assimp.
+- L'exécution du script d'installation persistante et le démarrage de MainWindow via `desktop/run.sh` restent en cours de validation.
+
+### Fichiers modifiés/créés
+- `desktop/pyproject.toml`
+- `desktop/uv.lock`
+- `desktop/README.md`
+- `desktop/run.sh` (nouveau)
+- `desktop/scripts/install_qt_quick3d_runtime.sh` (nouveau)
+- `BACKLOG.md`
+- `docs/development/DEVELOPMENT_LOG.md`
+
+### Limites
+Le chargement GLB est maintenant validé dans un runtime isolé, mais le suivi et l'alignement des lunettes sur un visage réel ne sont pas encore validés. Ne pas déclarer le filtre AR fini avant le test webcam.
