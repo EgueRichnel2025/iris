@@ -62,6 +62,52 @@ def decompose_face_transform(facial_transformation_matrix):
     quaternion = _quaternion_from_rotation(rotation)
     return QVector3D(*(float(value) for value in matrix[:3, 3])), quaternion.toEulerAngles()
 
+
+class FacePoseSmoother:
+    """Smooth face translation and orientation without changing model scale."""
+
+    def __init__(self, alpha: float = 0.35):
+        if not 0.0 < alpha <= 1.0:
+            raise ValueError("alpha must be in (0, 1]")
+        self.alpha = float(alpha)
+        self.position = None
+        self.rotation = None
+
+    def reset(self):
+        self.position = None
+        self.rotation = None
+
+    def update(self, matrix):
+        if matrix is None:
+            self.reset()
+            return None
+        position, _ = decompose_face_transform(matrix)
+        basis = np.asarray(matrix, dtype=np.float64)[:3, :3]
+        scales = np.linalg.norm(basis, axis=0)
+        basis = basis / scales[np.newaxis, :]
+        u, _, vt = np.linalg.svd(basis)
+        rotation_matrix = u @ vt
+        if np.linalg.det(rotation_matrix) < 0:
+            u[:, -1] *= -1
+            rotation_matrix = u @ vt
+        current_rotation = _quaternion_from_rotation(rotation_matrix)
+
+        if self.position is None or self.rotation is None:
+            self.position = position
+            self.rotation = current_rotation
+        else:
+            previous = self.position
+            self.position = QVector3D(
+                previous.x() + self.alpha * (position.x() - previous.x()),
+                previous.y() + self.alpha * (position.y() - previous.y()),
+                previous.z() + self.alpha * (position.z() - previous.z()),
+            )
+            self.rotation = QQuaternion.slerp(
+                self.rotation, current_rotation, self.alpha
+            )
+            self.rotation.normalize()
+        return self.position, self.rotation.toEulerAngles()
+
 class GlassesQuickView(QQuickWidget):
     """Display camera frames and a face-anchored GLB model in one Qt view."""
     def __init__(self, parent=None):
@@ -69,6 +115,7 @@ class GlassesQuickView(QQuickWidget):
         self._provider = CameraImageProvider()
         self.engine().addImageProvider("camera", self._provider)
         self._frame_number = 0
+        self._pose_smoother = FacePoseSmoother(alpha=0.35)
         self.setResizeMode(QQuickWidget.ResizeMode.SizeRootObjectToView)
         self.setClearColor(Qt.GlobalColor.black)
         desktop_root = Path(__file__).resolve().parents[1]
@@ -93,10 +140,11 @@ class GlassesQuickView(QQuickWidget):
         self.rootObject().setProperty("frameSource", f"image://camera/frame/{self._frame_number}")
     def set_face_transform(self, matrix):
         root = self.rootObject()
-        if matrix is None:
+        pose = self._pose_smoother.update(matrix)
+        if pose is None:
             root.setProperty("hasFace", False)
             return
-        position, rotation = decompose_face_transform(matrix)
+        position, rotation = pose
         root.setProperty("facePosition", position)
         root.setProperty("faceEulerRotation", rotation)
         root.setProperty("hasFace", True)

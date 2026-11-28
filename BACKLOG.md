@@ -22,7 +22,9 @@ L'application de référence est la version native Python située dans `desktop/
 
 ### P1 — Effets AR 2D
 - [x] Ajouter un premier accessoire ancré au visage (lunettes) ; chapeaux et oreilles restent à faire.
-- [x] Exploiter les landmarks lissés pour stabiliser la position, l’échelle et la rotation des lunettes ; validation visuelle prolongée en mouvement encore à effectuer.
+- [x] Exploiter les landmarks lissés pour stabiliser la position, l’échelle et la rotation des lunettes.
+- [x] Lisser la transformation 3D MediaPipe par interpolation de la translation et SLERP des rotations ; réinitialiser à la perte du visage.
+- [ ] Calibrer finement le pont nasal et les proportions largeur/hauteur sur plusieurs visages et angles réels.
 - [ ] Prévoir une sélection et un aperçu des effets.
 
 ### P1 — Rendu 3D des accessoires
@@ -390,3 +392,16 @@ Les modules Qt Quick 3D et plugins Asset Importers utilisés pour le smoke test 
 | 3 | Validation statique. | Fichier QML contrôlé ; tests et vérification visuelle en cours sur la webcam. |
 
 **À confirmer :** le rendu doit être vérifié sur la caméra en mouvement ; si la largeur n'est pas encore adaptée, la prochaine correction portera sur la calibration visage/échelle plutôt que sur des diminutions arbitraires.
+
+
+### 2026-11-28 — Stabilisation de la pose 3D des lunettes
+
+| # | Action | Résultat |
+| --- | --- | --- |
+| 1 | Relecture de la calibration GLB et du pipeline. | Modèle frontal 134 mm ; échelle utilisateur validée à 88 %. Le flux vidéo et les matrices faciales sont actifs. |
+| 2 | Diagnostic de la pose. | Les landmarks étaient lissés, mais la matrice de transformation faciale utilisée par le rendu 3D était appliquée brute à chaque frame. |
+| 3 | Ajout de `FacePoseSmoother`. | Lissage EMA de la translation (alpha 0,35) et interpolation sphérique SLERP des rotations ; aucune modification de l'échelle 88 %. |
+| 4 | Perte du visage. | Réinitialisation de l'état du lisseur pour éviter un décalage au retour du visage. |
+| 5 | Tests. | 137 tests réussis, dont interpolation translation/rotation et reset. |
+
+**À faire :** ne pas modifier arbitrairement le pont nasal ou les proportions tant que plusieurs vues webcam (face, yaw gauche/droite, pitch haut/bas) n'ont pas été inspectées. La calibration géométrique est donc encore ouverte.

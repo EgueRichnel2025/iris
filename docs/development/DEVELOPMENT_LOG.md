@@ -1245,3 +1245,21 @@ Le chargement GLB est maintenant validé dans un runtime isolé, mais le suivi e
 - Vérification du GLB : largeur du cadre frontal déclarée 0,134 m (134 mm), branches ouvertes incluses dans un autre sous-maillage.
 - L'échelle QML précédente était uniforme à 100 %. Réduction conservatrice à 88 % sur les trois axes, sans changer le pivot ni la transformation faciale.
 - Validation visuelle en cours : la valeur doit être confirmée sur webcam réelle et ne doit pas être déclarée finale avant le retour utilisateur.
+
+
+## Session 2026-11-28 — Stabilisation de la pose 3D
+
+### Diagnostic
+- Dépôt propre au début (`830ee35`).
+- Échelle du GLB déjà réduite à 88 %, ce réglage a été conservé puisque l'utilisateur a jugé le résultat « plutôt pas mal ».
+- `FaceVisionPipeline` lisse les landmarks, mais `facial_transformation_matrices[0]` est transmise directement à `GlassesQuickView` ; le transform 3D n'était donc pas lissé.
+- Tentative de capture indépendante de la caméra bloquée car IRIS détenait déjà `/dev/video0` ; aucune modification de calibration n'a été faite sur la base de cette tentative.
+
+### Changements
+- `desktop/iris/qt_quick_glasses.py` : ajout de `FacePoseSmoother`, alpha 0,35 sur la translation et SLERP sur le quaternion d'orientation. L'échelle du GLB est indépendante et inchangée. Perte de visage => reset du lisseur.
+- `desktop/tests/test_qt_quick_glasses.py` : cas d'interpolation de translation, de yaw et de réinitialisation lors de la perte du visage.
+
+### Validation
+- Tests ciblés : `6 passed`.
+- Suite complète : `137 passed`.
+- Calibration du pont nasal et du rapport largeur/hauteur laissée en attente de vérification visuelle multi-angles ; ne pas présenter ces réglages comme terminés.
