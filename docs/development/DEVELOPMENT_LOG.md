@@ -1238,3 +1238,10 @@ Le chargement GLB est maintenant validé dans un runtime isolé, mais le suivi e
 - L'amélioration de contraste n'est pas un remplacement d'un éclairage frontal ; le contre-jour physique reste préférable à corriger à la source.
 - Le GLB comprend des sous-maillages séparés (acétate, métal, plaquettes, verres, branches). La capture seule ne permet pas de déterminer précisément quel sous-maillage cause les deux détails clairs du pont nasal ; aucun élément n'a été supprimé arbitrairement.
 - L'ajustement précis du pivot, de l'échelle et du pont nasal doit encore être validé sur plusieurs angles en direct.
+
+## Session 2026-11-28 — Ajustement de l'échelle de la monture
+
+- Le dépôt était propre sur `main` au départ (`92dac1b`).
+- Vérification du GLB : largeur du cadre frontal déclarée 0,134 m (134 mm), branches ouvertes incluses dans un autre sous-maillage.
+- L'échelle QML précédente était uniforme à 100 %. Réduction conservatrice à 88 % sur les trois axes, sans changer le pivot ni la transformation faciale.
+- Validation visuelle en cours : la valeur doit être confirmée sur webcam réelle et ne doit pas être déclarée finale avant le retour utilisateur.

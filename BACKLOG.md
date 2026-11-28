@@ -380,3 +380,13 @@ Les modules Qt Quick 3D et plugins Asset Importers utilisés pour le smoke test 
 | 7 | Tests et smoke test GUI réel. | **135 tests réussis** ; compilation et `git diff --check` réussis ; MainWindow ouverte, caméra active, 1 visage détecté, QML `Status.Ready`, lunettes sélectionnées, environ 17 FPS. |
 
 **Limites restantes :** la correction logicielle ne remplace pas une meilleure lumière frontale ; la calibration du modèle de lunettes (pivot, échelle, pont nasal et ajustement en mouvement) doit encore être validée visuellement. La géométrie du GLB n'a pas été modifiée dans cette étape.
+
+### 2026-11-28 — Réduction de la taille des lunettes
+
+| # | Action | Résultat |
+| --- | --- | --- |
+| 1 | Vérification du modèle GLB et de l'échelle active. | Monture frontale déclarée à 134 mm de large ; échelle QML précédente : 100 %. |
+| 2 | Ajustement conservateur de l'échelle globale. | Échelle réduite de 100 % à 88 % (−12 %) en conservant le pivot, la pose faciale et les proportions. |
+| 3 | Validation statique. | Fichier QML contrôlé ; tests et vérification visuelle en cours sur la webcam. |
+
+**À confirmer :** le rendu doit être vérifié sur la caméra en mouvement ; si la largeur n'est pas encore adaptée, la prochaine correction portera sur la calibration visage/échelle plutôt que sur des diminutions arbitraires.

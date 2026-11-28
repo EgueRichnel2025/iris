@@ -26,7 +26,7 @@ Item {
             source: root.modelSource
             position: root.facePosition
             eulerRotation: root.faceEulerRotation
-            scale: Qt.vector3d(100, 100, 100)
+            scale: Qt.vector3d(88, 88, 88)
             visible: root.glassesEnabled && root.hasFace && status === RuntimeLoader.Success
         }
     }
