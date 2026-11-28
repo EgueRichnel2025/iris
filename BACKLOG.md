@@ -366,3 +366,17 @@ Les modules Qt Quick 3D et plugins Asset Importers utilisés pour le smoke test 
 | 7 | Documentation. | `desktop/README.md` décrit désormais la procédure de préparation et le lanceur dédié au rendu GLB. |
 
 **Validation importante :** QML `Status.Ready` et chargement GLB `RuntimeLoader.Success` confirmés avec les composants extraits dans `/tmp`. Le lancement de l'application complète avec l'installation persistante et le suivi sur visage réel reste à valider avant de marquer le rendu AR comme terminé.
+
+### 2026-11-28 — Amélioration de l'éclairage et de l'interface
+
+| # | Action | Résultat |
+| --- | --- | --- |
+| 1 | Lecture de la capture du 28/11 à 06:45 et diagnostic du flux caméra. | Caméra active, un visage détecté, pose faciale stable, 17 FPS ; image sous-exposée avec une forte différence entre visage et fenêtre de fond. |
+| 2 | Mesure du flux caméra brut. | Luminance LAB moyenne observée autour de 75 sur 60 frames (la mesure dépend de l'éclairage ambiant). |
+| 3 | Ajout d'une correction locale d'éclairage CLAHE sur le canal de luminance LAB. | Les ombres sont relevées sans appliquer un gain global aux hautes lumières ; traitement après inférence pour préserver les pixels transmis à MediaPipe. |
+| 4 | Mesure de coût et effet sur 60 frames réelles. | Luminance moyenne mesurée : 75,2 → 90,7 ; coût CLAHE moyen : 5,19 ms/frame (P95 5,59 ms). |
+| 5 | Traduction de l'interface. | Titres, filtres, statuts et textes latéraux traduits en français ; titres latéraux autorisés à passer à la ligne. |
+| 6 | Ajustement de l'éclairage du modèle 3D. | Intensité de la lumière directionnelle réduite de 1,5 à 1,0 pour limiter les reflets trop agressifs sur les parties métalliques. Aucun changement aveugle de géométrie du pont nasal : la capture ne permet pas d'isoler suffisamment les sous-maillages. |
+| 7 | Tests et smoke test GUI réel. | **135 tests réussis** ; compilation et `git diff --check` réussis ; MainWindow ouverte, caméra active, 1 visage détecté, QML `Status.Ready`, lunettes sélectionnées, environ 17 FPS. |
+
+**Limites restantes :** la correction logicielle ne remplace pas une meilleure lumière frontale ; la calibration du modèle de lunettes (pivot, échelle, pont nasal et ajustement en mouvement) doit encore être validée visuellement. La géométrie du GLB n'a pas été modifiée dans cette étape.

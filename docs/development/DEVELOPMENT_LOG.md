@@ -1210,3 +1210,31 @@ Les modules Qt Quick 3D et plugins Asset Importers utilisés pour le smoke test 
 
 ### Limites
 Le chargement GLB est maintenant validé dans un runtime isolé, mais le suivi et l'alignement des lunettes sur un visage réel ne sont pas encore validés. Ne pas déclarer le filtre AR fini avant le test webcam.
+
+## Session 2026-11-28 — Correction de l'éclairage caméra et localisation UI
+
+### Diagnostic initial
+- Dépôt `main` propre et synchronisé avec `origin/main` au début de la session (`ee9a547`).
+- Capture utilisateur examinée : caméra active, 1 visage détecté, pose faciale affichée, lunettes visibles, mais scène trop sombre et interface partiellement en anglais.
+- Test webcam brut : `/dev/video0` accessible ; flux réellement capturé en 640×480 malgré une demande 1280×720 ; luminance LAB moyenne d'environ 66,8 lors d'un premier échantillonnage. `v4l2-ctl` n'est pas installé.
+- Suite initiale : 132 tests réussis.
+
+### Modifications
+- `desktop/iris/effects.py` : ajout de `enhance_camera_lighting`, CLAHE sur le canal L de LAB, sans gain global ni mutation du buffer original.
+- `desktop/iris/camera.py` : amélioration appliquée après le pipeline de détection, afin que MediaPipe continue de recevoir les pixels originaux ; les filtres sont ensuite appliqués à l'image éclaircie.
+- `desktop/iris/main_window.py` : titres, sous-titres, filtres de statut, légendes et note latérale localisés en français ; libellé latéral autorisé à passer à la ligne.
+- `desktop/iris/effects.py` : libellés des filtres traduits en français.
+- `desktop/iris/ui/qml/glasses_view.qml` : intensité de la lumière directionnelle ramenée de 1,5 à 1,0.
+- `desktop/tests/test_effects.py` : tests pour la hausse des ombres, la préservation des dimensions/dtype, la non-mutation, les hautes lumières et les entrées invalides.
+
+### Validations
+- Suite complète : `135 passed`.
+- `compileall iris tests` : réussi.
+- `git diff --check` : réussi.
+- Mesure réelle sur 60 frames : luminance LAB moyenne 75,2 → 90,7 ; coût CLAHE moyen 5,19 ms/frame, P95 5,59 ms.
+- Smoke test de MainWindow : `CAMÉRA ACTIVE`, `1 VISAGE DÉTECTÉ`, QML `Status.Ready`, accessoire Lunettes sélectionné, pose `YAW -2° · PITCH +1° · ROLL -0°`, environ 17 FPS.
+
+### Limites
+- L'amélioration de contraste n'est pas un remplacement d'un éclairage frontal ; le contre-jour physique reste préférable à corriger à la source.
+- Le GLB comprend des sous-maillages séparés (acétate, métal, plaquettes, verres, branches). La capture seule ne permet pas de déterminer précisément quel sous-maillage cause les deux détails clairs du pont nasal ; aucun élément n'a été supprimé arbitrairement.
+- L'ajustement précis du pivot, de l'échelle et du pont nasal doit encore être validé sur plusieurs angles en direct.

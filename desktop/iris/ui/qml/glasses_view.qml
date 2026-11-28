@@ -20,7 +20,7 @@ Item {
         height: cameraImage.paintedHeight
         environment: SceneEnvironment { backgroundMode: SceneEnvironment.Transparent }
         camera: PerspectiveCamera { position: Qt.vector3d(0, 0, 0); fieldOfView: 43.6; clipNear: 0.1; clipFar: 300 }
-        DirectionalLight { eulerRotation: Qt.vector3d(-20, -20, 0); brightness: 1.5 }
+        DirectionalLight { eulerRotation: Qt.vector3d(-20, -20, 0); brightness: 1.0 }
         RuntimeLoader {
             id: glassesModel
             source: root.modelSource

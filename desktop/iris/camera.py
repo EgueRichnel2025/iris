@@ -11,7 +11,7 @@ from PySide6.QtCore import QThread, Signal
 from PySide6.QtGui import QImage
 
 from iris.accessories import apply_accessory
-from iris.effects import apply_effect
+from iris.effects import apply_effect, enhance_camera_lighting
 from iris.vision.face_landmarker import FaceLandmarker
 from iris.vision.head_pose import HeadPoseEstimator
 from iris.vision.pipeline import FaceVisionPipeline
@@ -151,7 +151,10 @@ class CameraThread(QThread):
                         self.face_transform_updated.emit(None)
                         self.head_pose_updated.emit(0.0, 0.0, 0.0)
 
-                processed = apply_effect(frame, self._effect)
+                # Improve a dark webcam feed after inference so MediaPipe keeps
+                # receiving the original, unmodified camera pixels.
+                illuminated = enhance_camera_lighting(frame)
+                processed = apply_effect(illuminated, self._effect)
                 rgb = cv2.cvtColor(processed, cv2.COLOR_BGR2RGB)
                 height, width, _ = rgb.shape
                 image = QImage(

@@ -7,12 +7,29 @@ import numpy as np
 
 EFFECTS: tuple[tuple[str, str], ...] = (
     ("original", "Original"),
-    ("warm", "Warm glow"),
-    ("cool", "Cool tone"),
+    ("warm", "Lueur chaude"),
+    ("cool", "Teinte froide"),
     ("noir", "Noir"),
-    ("vivid", "Vivid"),
-    ("soft", "Soft focus"),
+    ("vivid", "Éclatant"),
+    ("soft", "Flou doux"),
 )
+
+
+def enhance_camera_lighting(frame: np.ndarray) -> np.ndarray:
+    """Lift dark camera shadows while preserving bright areas and color."""
+    if frame is None or frame.size == 0:
+        raise ValueError("A non-empty camera frame is required.")
+    if frame.ndim != 3 or frame.shape[2] != 3 or frame.dtype != np.uint8:
+        raise ValueError("frame must be a uint8 BGR image")
+
+    # CLAHE acts on luminance only: it opens underexposed shadows without
+    # globally raising the already-bright window behind the subject.
+    lab = cv2.cvtColor(frame, cv2.COLOR_BGR2LAB)
+    luminance, a_channel, b_channel = cv2.split(lab)
+    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+    enhanced = clahe.apply(luminance)
+    merged = cv2.merge((enhanced, a_channel, b_channel))
+    return cv2.cvtColor(merged, cv2.COLOR_LAB2BGR)
 
 
 def apply_effect(frame: np.ndarray, effect: str) -> np.ndarray:

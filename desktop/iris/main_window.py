@@ -35,7 +35,7 @@ except ImportError:
 class MainWindow(QMainWindow):
     def __init__(self) -> None:
         super().__init__()
-        self.setWindowTitle("IRIS — Real-Time Face Filters")
+        self.setWindowTitle("IRIS — Filtres en temps réel")
         self.setMinimumSize(1120, 760)
         self.resize(1380, 860)
         self.current_frame = None
@@ -101,12 +101,12 @@ class MainWindow(QMainWindow):
         brand = QLabel('iris<span>.</span>')
         brand.setObjectName("brand")
         side.addWidget(brand)
-        eyebrow = QLabel("REAL-TIME CAMERA")
+        eyebrow = QLabel("CAMÉRA EN DIRECT")
         eyebrow.setObjectName("eyebrow")
         side.addWidget(eyebrow)
         side.addSpacing(28)
 
-        section = QLabel("FILTERS")
+        section = QLabel("FILTRES")
         section.setObjectName("eyebrow")
         side.addWidget(section)
 
@@ -121,7 +121,7 @@ class MainWindow(QMainWindow):
         self.filter_list.currentItemChanged.connect(self._select_effect)
         side.addWidget(self.filter_list, 1)
 
-        accessory_title = QLabel("AR ACCESSORIES")
+        accessory_title = QLabel("ACCESSOIRES AR")
         accessory_title.setObjectName("eyebrow")
         side.addWidget(accessory_title)
 
@@ -136,12 +136,14 @@ class MainWindow(QMainWindow):
         self.accessory_list.currentItemChanged.connect(self._select_accessory)
         side.addWidget(self.accessory_list, 0)
 
-        note_title = QLabel("YOUR CAMERA, YOUR RULES")
+        note_title = QLabel("VOTRE IMAGE, VOS RÈGLES")
+        note_title.setWordWrap(True)
         note_title.setObjectName("eyebrow")
         side.addWidget(note_title)
-        note = QLabel("Everything is processed locally. Your camera feed is not uploaded.")
+        note = QLabel("Tout est traité localement. Votre flux vidéo reste sur votre appareil.")
         note.setObjectName("sideNote")
         note.setWordWrap(True)
+        note.setMinimumWidth(0)
         side.addWidget(note)
 
         content = QWidget()
@@ -151,24 +153,24 @@ class MainWindow(QMainWindow):
 
         top = QHBoxLayout()
         title_box = QVBoxLayout()
-        page_title = QLabel("See yourself differently.")
+        page_title = QLabel("Voyez-vous autrement.")
         page_title.setObjectName("pageTitle")
         title_box.addWidget(page_title)
-        subtitle = QLabel("Choose an effect and enjoy your live camera preview.")
+        subtitle = QLabel("Choisissez un effet et profitez de l’aperçu en direct.")
         subtitle.setObjectName("subtitle")
         title_box.addWidget(subtitle)
         top.addLayout(title_box)
         top.addStretch(1)
-        self.status_label = QLabel("INITIALIZING CAMERA")
+        self.status_label = QLabel("DÉMARRAGE DE LA CAMÉRA")
         self.status_label.setObjectName("status")
         top.addWidget(self.status_label, alignment=Qt.AlignmentFlag.AlignVCenter)
-        self.vision_label = QLabel("INITIALIZING FACE TRACKING")
+        self.vision_label = QLabel("INITIALISATION DU SUIVI FACIAL")
         self.vision_label.setObjectName("visionStatus")
         top.addWidget(self.vision_label, alignment=Qt.AlignmentFlag.AlignVCenter)
         content_layout.addLayout(top)
 
         self.camera_stack = QStackedWidget()
-        self.camera_view = QLabel("Starting your camera…")
+        self.camera_view = QLabel("Démarrage de la caméra…")
         self.camera_view.setObjectName("cameraView")
         self.camera_view.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.camera_view.setMinimumSize(760, 470)
@@ -301,9 +303,9 @@ class MainWindow(QMainWindow):
             self.vision_label.setText("SUIVI EN PAUSE")
             self.pose_label.setText("POSE EN PAUSE")
         else:
-            self.camera_view.setText("Starting your camera…")
-            self.status_label.setText("INITIALIZING CAMERA")
-            self.vision_label.setText("INITIALIZING FACE TRACKING")
+            self.camera_view.setText("Démarrage de la caméra…")
+            self.status_label.setText("DÉMARRAGE DE LA CAMÉRA")
+            self.vision_label.setText("INITIALISATION DU SUIVI FACIAL")
             self.pose_label.setText("YAW —° · PITCH —° · ROLL —°")
             self.camera.start()
 
