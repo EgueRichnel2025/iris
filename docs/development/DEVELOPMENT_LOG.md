@@ -1263,3 +1263,23 @@ Le chargement GLB est maintenant validé dans un runtime isolé, mais le suivi e
 - Tests ciblés : `6 passed`.
 - Suite complète : `137 passed`.
 - Calibration du pont nasal et du rapport largeur/hauteur laissée en attente de vérification visuelle multi-angles ; ne pas présenter ces réglages comme terminés.
+
+## Session 2026-11-28 — Ancrage géométrique du GLB au plan des yeux
+
+### Diagnostic fondé sur les captures et les assets
+- Captures 07:35:42, 07:35:48, 07:35:52 et 07:35:55 : branches qui ne suivent pas correctement les oreilles et translation apparente de la monture pendant les mouvements verticaux.
+- GLB : monture frontale x ±0,067 m ; centre de la face avant y=0,050 m dans les vertices, avec translation de nœud racine y=-0,027 m, soit un centre effectif à y≈0,023 m (2,30 cm). Les branches s'étendent vers z négatif, à l'arrière de la monture.
+- Modèle canonique MediaPipe OBJ : coins externes des yeux (indices 33 et 263) à x ±4,4459 cm, y 2,664 cm, z 3,1734 cm. Leur milieu est le repère de référence horizontal de la monture.
+- Matrice faciale observée en direct : translation (10,4057, -10,7743, -29,9154) et base de rotation non triviale. Le code utilisait uniquement la translation de l'origine canonique comme position du GLB, sans appliquer l'offset local vers le plan des yeux.
+
+### Changements
+- `desktop/iris/vision/face_transform.py` : constante `GLASSES_MODEL_ANCHOR_CM = (0, 0.36, 3.17)` ; helper `face_model_anchor_position` transforme l'offset local par la matrice faciale complète, ce qui entraîne l'ancrage avec yaw/pitch/roll.
+- `desktop/iris/qt_quick_glasses.py` : `FacePoseSmoother` utilise la position ancrée ; la rotation est conservée à partir de la base orthonormalisée. L'échelle GLB de 88 % reste inchangée.
+- `desktop/tests/test_face_transform.py` : tests de position d'ancrage et de rotation de l'offset.
+- `desktop/tests/test_qt_quick_glasses.py` : tests adaptés à la nouvelle position d'ancrage.
+
+### Validation
+- Tests ciblés : 22 passed.
+- Suite complète : 139 passed.
+- `compileall` et `git diff --check` : réussis.
+- L'application locale a été relancée après le changement ; la validation finale des branches sur les oreilles et des mouvements haut/bas doit être confirmée visuellement par l'utilisateur.

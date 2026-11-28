@@ -7,7 +7,7 @@ from PySide6.QtCore import QUrl, Qt
 from PySide6.QtGui import QImage, QQuaternion, QVector3D
 from PySide6.QtQuick import QQuickImageProvider
 from PySide6.QtQuickWidgets import QQuickWidget
-from iris.vision.face_transform import build_face_actor_matrix
+from iris.vision.face_transform import face_model_anchor_position
 
 class CameraImageProvider(QQuickImageProvider):
     """Serve the latest camera image to QML without temporary files."""
@@ -48,7 +48,9 @@ def _quaternion_from_rotation(matrix: np.ndarray) -> QQuaternion:
     return result
 
 def decompose_face_transform(facial_transformation_matrix):
-    matrix = build_face_actor_matrix(facial_transformation_matrix)
+    matrix = np.asarray(facial_transformation_matrix, dtype=np.float64)
+    if matrix.shape != (4, 4) or not np.isfinite(matrix).all():
+        raise ValueError("facial_transformation_matrix must be a finite 4x4 matrix")
     basis = matrix[:3, :3]
     scales = np.linalg.norm(basis, axis=0)
     if np.any(scales <= 1e-8):
@@ -81,7 +83,9 @@ class FacePoseSmoother:
         if matrix is None:
             self.reset()
             return None
-        position, _ = decompose_face_transform(matrix)
+        _, _ = decompose_face_transform(matrix)
+        anchored_position = face_model_anchor_position(matrix)
+        position = QVector3D(*(float(value) for value in anchored_position))
         basis = np.asarray(matrix, dtype=np.float64)[:3, :3]
         scales = np.linalg.norm(basis, axis=0)
         basis = basis / scales[np.newaxis, :]

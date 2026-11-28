@@ -9,6 +9,30 @@ from numpy.typing import ArrayLike, NDArray
 
 
 GLB_METERS_TO_MEDIAPIPE_CENTIMETERS = 100.0
+# Offset from the MediaPipe canonical-face origin to the GLB root.
+# The GLB front frame center is at y=2.30 cm after its root translation;
+# the canonical outer-eye midpoint is at approximately (0, 2.66, 3.17) cm.
+GLASSES_MODEL_ANCHOR_CM = np.array([0.0, 0.36, 3.17], dtype=np.float64)
+
+
+def face_model_anchor_position(
+    facial_transformation_matrix: ArrayLike,
+    anchor_offset_cm: ArrayLike = GLASSES_MODEL_ANCHOR_CM,
+) -> NDArray[np.float64]:
+    """Return the camera-space position of a model anchor in face coordinates.
+
+    The anchor offset is expressed in MediaPipe canonical-face centimeters and
+    is transformed by the full facial pose, so it follows yaw, pitch and roll.
+    """
+    matrix = np.asarray(facial_transformation_matrix, dtype=np.float64)
+    offset = np.asarray(anchor_offset_cm, dtype=np.float64)
+    if matrix.shape != (4, 4) or not np.isfinite(matrix).all():
+        raise ValueError("facial_transformation_matrix must be a finite 4x4 matrix")
+    if offset.shape != (3,) or not np.isfinite(offset).all():
+        raise ValueError("anchor_offset_cm must be a finite 3D vector")
+    if not np.allclose(matrix[3], (0.0, 0.0, 0.0, 1.0), atol=1e-4):
+        raise ValueError("facial_transformation_matrix must be affine")
+    return matrix[:3, :3] @ offset + matrix[:3, 3]
 
 
 def build_face_actor_matrix(

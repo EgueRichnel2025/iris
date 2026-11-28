@@ -405,3 +405,15 @@ Les modules Qt Quick 3D et plugins Asset Importers utilisés pour le smoke test 
 | 5 | Tests. | 137 tests réussis, dont interpolation translation/rotation et reset. |
 
 **À faire :** ne pas modifier arbitrairement le pont nasal ou les proportions tant que plusieurs vues webcam (face, yaw gauche/droite, pitch haut/bas) n'ont pas été inspectées. La calibration géométrique est donc encore ouverte.
+
+### 2026-11-28 — Correction de l'ancrage géométrique des lunettes
+
+| # | Action | Résultat |
+| --- | --- | --- |
+| 1 | Inspection des captures 07:35:42–07:35:55 et du GLB. | Défaut confirmé : la transformation faciale positionnait l'origine du GLB, sans compenser l'écart entre l'origine du repère canonique et le plan des yeux. |
+| 2 | Inspection du modèle canonique MediaPipe. | Milieu des coins externes des yeux : environ (0, 2,66, 3,17) cm ; centre de la face avant du GLB après translation racine : y ≈ 2,30 cm, z = 0. |
+| 3 | Ajout d'un ancrage facial local. | Offset du nœud GLB : (0, 0,36, 3,17) cm, appliqué par la matrice faciale complète pour suivre les rotations yaw/pitch/roll. |
+| 4 | Échelle du modèle. | Conservée à 88 %, sans modification de la géométrie ni du lissage. |
+| 5 | Tests. | 139 tests réussis ; cas dédiés à l'offset, à sa rotation avec la tête et au lissage. |
+
+**Validation visuelle restante :** contrôler sur la webcam que les branches rejoignent les oreilles et que le modèle reste aligné en pitch haut/bas et en yaw. Le repère local est maintenant compensé, mais la calibration finale doit encore être confirmée sur l'utilisateur.

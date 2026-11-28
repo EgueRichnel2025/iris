@@ -97,3 +97,30 @@ def test_apply_face_transform_updates_vtk_actor_without_rendering_uninitialized_
         [[actor.matrix.GetElement(r, c) for c in range(4)] for r in range(4)],
         build_face_actor_matrix(face),
     )
+
+
+
+def test_glasses_anchor_is_offset_from_face_origin_to_eye_plane():
+    from iris.vision.face_transform import face_model_anchor_position
+
+    face = np.eye(4)
+    face[:3, 3] = (4.0, -8.0, -30.0)
+    result = face_model_anchor_position(face)
+
+    np.testing.assert_allclose(result, (4.0, -7.64, -26.83), atol=1e-8)
+
+
+def test_glasses_anchor_offset_rotates_with_head_pitch_and_yaw():
+    from iris.vision.face_transform import face_model_anchor_position
+
+    face = np.eye(4)
+    yaw = np.deg2rad(35.0)
+    pitch = np.deg2rad(-20.0)
+    ry = np.array([[np.cos(yaw), 0, np.sin(yaw)], [0, 1, 0], [-np.sin(yaw), 0, np.cos(yaw)]])
+    rx = np.array([[1, 0, 0], [0, np.cos(pitch), -np.sin(pitch)], [0, np.sin(pitch), np.cos(pitch)]])
+    face[:3, :3] = ry @ rx
+    face[:3, 3] = (2.0, 3.0, -30.0)
+
+    expected = face[:3, :3] @ np.array([0.0, 0.36, 3.17]) + face[:3, 3]
+    np.testing.assert_allclose(face_model_anchor_position(face), expected)
+    assert not np.allclose(expected, face[:3, 3])

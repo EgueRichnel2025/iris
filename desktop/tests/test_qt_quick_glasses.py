@@ -48,19 +48,17 @@ def test_glasses_pose_smoothing_interpolates_translation_and_rotation():
 
     smoother = FacePoseSmoother(alpha=0.35)
     first = np.eye(4, dtype=np.float32)
-    first[:3, 3] = (0.0, 0.0, -30.0)
+    first[:3, 3] = (0.0, -0.36, -33.17)
     smoother.update(first)
 
     second = np.eye(4, dtype=np.float32)
-    second[:3, 3] = (10.0, 4.0, -20.0)
-    angle = np.deg2rad(30.0)
-    second[:3, :3] = [[np.cos(angle), 0, np.sin(angle)], [0, 1, 0], [-np.sin(angle), 0, np.cos(angle)]]
+    second[:3, 3] = (10.0, 3.64, -23.17)
     position, rotation = smoother.update(second)
 
     assert position.x() == pytest.approx(3.5)
     assert position.y() == pytest.approx(1.4)
-    assert position.z() == pytest.approx(-26.5)
-    assert abs(rotation.y()) == pytest.approx(10.5, abs=0.3)
+    assert position.z() == pytest.approx(-26.5, abs=1e-5)
+    assert rotation.y() == pytest.approx(0.0, abs=0.3)
 
 
 def test_glasses_pose_smoothing_resets_when_face_is_lost():
